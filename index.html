@@ -61,6 +61,15 @@
       -webkit-appearance: none; 
       margin: 0; 
     }
+    #tabel-rincian { table-layout: fixed; }
+    #tabel-rincian th, #tabel-rincian td { min-width: 0; white-space: normal; overflow-wrap: anywhere; border-right: 1px solid rgba(14,165,233,.22); }
+    #tabel-rincian th { padding-right: 10px; }
+    #tabel-rincian td > div { flex-wrap: wrap; }
+    #tabel-rincian.fit-table th, #tabel-rincian.fit-table td { padding: 6px 3px; font-size: 10px; letter-spacing: normal; }
+    #tabel-rincian.fit-table th { padding-right: 8px; }
+    #tabel-rincian.fit-table button { padding: 4px 2px; max-width: 100%; white-space: normal; overflow-wrap: anywhere; font-size: 9px; }
+    .rkas-column-grip { position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: col-resize; touch-action: none; background: rgba(14,165,233,.12); }
+    .rkas-column-grip:hover, .rkas-column-grip:focus { background: #0ea5e9; outline: none; }
   </style>
 </head>
 <body class="bg-brandDark text-brandText min-h-screen flex flex-col md:flex-row antialiased select-none selection:bg-brandPrimary selection:text-white">
@@ -299,6 +308,7 @@
             <button onclick="eksporKeExcel()" class="px-3 py-2 rounded-lg bg-brandDark border border-brandPrimary/30 text-brandText hover:border-brandPrimary hover:text-brandPrimary font-medium text-xs transition-colors flex items-center gap-1.5">
               Ekspor FORMAT RKAS.xlsx
             </button>
+            <button type="button" id="btn-fit-table" onclick="sesuaikanTabelRKAS()" class="px-3 py-2 rounded-lg bg-brandDark border border-brandPrimary/30 text-brandText hover:border-brandPrimary hover:text-brandPrimary font-medium text-xs transition-colors">↔ Sesuaikan Tabel</button>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -3508,6 +3518,75 @@ Silakan tentukan:
         showAlertModal('Seluruh kunci API tersimpan telah dihapus.', 'Kunci Dihapus');
       });
     }
+
+    const lebarKolomRKAS = [40,112,200,180,200,80,112,80,112,112,150,96,160,140];
+    function siapkanUkuranTabelRKAS() {
+      const tabel = document.getElementById('tabel-rincian');
+      const grup = document.createElement('colgroup');
+      lebarKolomRKAS.forEach(lebar => {
+        const kolom = document.createElement('col');
+        kolom.style.width = lebar + 'px';
+        grup.appendChild(kolom);
+      });
+      tabel.prepend(grup);
+      tabel.style.width = lebarKolomRKAS.reduce((a,b) => a+b,0) + 'px';
+      tabel.querySelectorAll('th').forEach((th,index) => {
+        th.style.width = 'auto';
+        const grip = document.createElement('span');
+        grip.className = 'rkas-column-grip';
+        grip.tabIndex = 0;
+        grip.setAttribute('role','separator');
+        grip.setAttribute('aria-orientation','vertical');
+        grip.setAttribute('aria-label','Atur lebar kolom ' + th.textContent.trim());
+        grip.title = 'Seret untuk mengatur lebar kolom. Gunakan panah kiri/kanan saat fokus.';
+        function mulai() {
+          const widths = Array.from(tabel.querySelectorAll('th'), el => el.getBoundingClientRect().width);
+          tabel.classList.remove('fit-table');
+          Array.from(grup.children).forEach((col,i) => col.style.width = widths[i] + 'px');
+          tabel.style.width = widths.reduce((a,b) => a+b,0) + 'px';
+          return widths;
+        }
+        function ubah(widths,delta) {
+          const width = Math.max(28,widths[index] + delta);
+          grup.children[index].style.width = width + 'px';
+          tabel.style.width = (widths.reduce((a,b) => a+b,0) + width-widths[index]) + 'px';
+        }
+        grip.addEventListener('pointerdown',event => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          const widths = mulai(), x = event.clientX;
+          grip.setPointerCapture(event.pointerId);
+          const move = e => ubah(widths,e.clientX-x);
+          const stop = () => {
+            grip.removeEventListener('pointermove',move);
+            grip.removeEventListener('pointerup',stop);
+            grip.removeEventListener('pointercancel',stop);
+            grip.removeEventListener('lostpointercapture',stop);
+          };
+          grip.addEventListener('pointermove',move);
+          grip.addEventListener('pointerup',stop);
+          grip.addEventListener('pointercancel',stop);
+          grip.addEventListener('lostpointercapture',stop);
+        });
+        grip.addEventListener('keydown',event => {
+          if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+          event.preventDefault();
+          ubah(mulai(),event.key === 'ArrowRight' ? 10 : -10);
+        });
+        th.appendChild(grip);
+      });
+    }
+    function sesuaikanTabelRKAS() {
+      const tabel = document.getElementById('tabel-rincian');
+      const total = lebarKolomRKAS.reduce((a,b) => a+b,0);
+      tabel.classList.add('fit-table');
+      tabel.style.width = '100%';
+      Array.from(tabel.querySelectorAll('col')).forEach((col,i) => {
+        col.style.width = (lebarKolomRKAS[i]/total*100) + '%';
+      });
+      tabel.parentElement.scrollLeft = 0;
+    }
+    siapkanUkuranTabelRKAS();
   </script>
 </body>
 </html>
