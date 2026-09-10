@@ -718,6 +718,12 @@
             <label class="font-medium text-brandMuted">Bulan Penggunaan (Pilih minimal satu) *</label>
             <span class="text-[10px] text-brandPrimary font-semibold">Jan–Jun: Salur 1 | Jul–Des: Salur 2</span>
           </div>
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Pilihan cepat bulan penggunaan">
+            <button type="button" onclick="pilihBulanManual('semua')" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">✔ Pilih Semua (12 Bulan)</button>
+            <button type="button" onclick="pilihBulanManual('salur1')" class="px-3 py-2 rounded-lg bg-brandGold hover:brightness-110 text-brandDark text-xs font-semibold">Salur 1 (Jan–Jun)</button>
+            <button type="button" onclick="pilihBulanManual('salur2')" class="px-3 py-2 rounded-lg bg-brandGold hover:brightness-110 text-brandDark text-xs font-semibold">Salur 2 (Jul–Des)</button>
+            <button type="button" onclick="pilihBulanManual('reset')" class="px-3 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white text-xs font-semibold">✕ Reset</button>
+          </div>
           <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="box-pilihan-bulan">
             <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Januari" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Jan</label>
             <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Februari" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Feb</label>
@@ -1922,6 +1928,15 @@ function kirimResponJSON(obj) {
       }
     }
 
+    function pilihBulanManual(pilihan) {
+      document.querySelectorAll('#box-pilihan-bulan .cb-bulan').forEach((cb, index) => {
+        cb.checked = pilihan === 'semua' ||
+          (pilihan === 'salur1' && index < 6) ||
+          (pilihan === 'salur2' && index >= 6);
+      });
+      hitungKalkulasiForm();
+    }
+
     function hitungKalkulasiForm() {
       const hargaSatuanInp = document.getElementById('form-harga-satuan');
       const volInp = document.getElementById('form-volume');
@@ -2261,28 +2276,33 @@ function kirimResponJSON(obj) {
       }
       const wb = XLSX.utils.book_new();
       const header = ['NO', 'URAIAN KEGIATAN', 'REKENING BELANJA', 'URAIAN', 'SATUAN', 'HARGA SATUAN', 'VOLUME BELANJA', 'HARGA TOTAL', 'KODE REKENING', 'REKENING BELANJA', 'BLOK BELANJA', 'BULAN', 'JUMLAH TOTAL ANGGARAN'];
-      const dataRows = [header];
-
-      rkasState.rincian.forEach((item, idx) => {
-        dataRows.push([
-          idx + 1,
-          item.uraianKegiatan,
-          item.rekeningBelanja,
-          item.uraian,
-          item.satuan,
-          item.hargaSatuan,
-          item.volume,
-          item.hargaTotal,
-          item.kodeRekening,
-          item.rekeningBelanja,
-          item.blokBelanja,
-          Array.isArray(item.bulan) ? item.bulan.join(', ') : item.bulan,
-          item.jumlahTotalAnggaran
-        ]);
+      const daftarBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      daftarBulan.forEach(namaBulan => {
+        const dataRows = [header];
+        rkasState.rincian.forEach(item => {
+          const bulanItem = (Array.isArray(item.bulan) ? item.bulan : String(item.bulan || '').split(','))
+            .map(bulan => String(bulan).trim().toLowerCase());
+          if (!bulanItem.includes(namaBulan.toLowerCase())) return;
+          const anggaranBulan = Number(item.hargaTotal) || 0;
+          dataRows.push([
+            dataRows.length,
+            item.uraianKegiatan,
+            item.rekeningBelanja,
+            item.uraian,
+            item.satuan,
+            item.hargaSatuan,
+            item.volume,
+            anggaranBulan,
+            item.kodeRekening,
+            item.rekeningBelanja,
+            item.blokBelanja,
+            namaBulan,
+            anggaranBulan
+          ]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(dataRows);
+        XLSX.utils.book_append_sheet(wb, ws, namaBulan);
       });
-
-      const ws = XLSX.utils.aoa_to_sheet(dataRows);
-      XLSX.utils.book_append_sheet(wb, ws, 'FORMAT RKAS');
       XLSX.writeFile(wb, `FORMAT_RKAS_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }
 
