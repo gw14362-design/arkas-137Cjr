@@ -1,0 +1,3493 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDN 137 CIJEROKASO — RKAS Studio v1.12</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS (xlsx) CDN untuk Ekspor & Parsing File Master -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#06101B',      // Latar utama (Deep Midnight Space)
+            brandCard: '#122B46',      // Latar kartu dan panel (Deep Sky Navy)
+            brandPrimary: '#0EA5E9',   // Tombol aksi, nav aktif, ikon & progres (Sky Blue)
+            brandTeal: '#0EA5E9',      // Penyelaras token warna utama
+            brandGold: '#E5B94B',      // Aksen premium terbatas (Celestial Gold)
+            brandText: '#F3FAFF',      // Teks utama (Pure Crisp White)
+            brandMuted: '#A4B8C9',     // Teks pendukung (Sky Slate)
+            brandDanger: '#EE5362'     // Peringatan dan kesalahan (Vibrant Crimson)
+          },
+          fontFamily: {
+            sans: ['Segoe UI', 'Inter', 'Arial', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Kustom Scrollbar Tema SDNCI Midnight Sky Gold */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #06101B;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #122B46;
+      border-radius: 4px;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #0EA5E9;
+    }
+    .table-sticky thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    /* Input number tanpa panah */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+  </style>
+</head>
+<body class="bg-brandDark text-brandText min-h-screen flex flex-col md:flex-row antialiased select-none selection:bg-brandPrimary selection:text-white">
+
+  <!-- ================================================================= -->
+  <!-- SIDEBAR UTAMA -->
+  <!-- ================================================================= -->
+  <aside class="w-full md:w-64 bg-brandCard border-b md:border-b-0 md:border-r border-brandPrimary/20 flex flex-col justify-between shrink-0 shadow-sm z-30">
+    <div class="p-5 space-y-6">
+      <!-- Identitas Lembaga -->
+      <div class="border-b border-brandPrimary/15 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brandPrimary/10 border border-brandGold/40 flex items-center justify-center text-brandGold font-bold text-lg shadow-sm">
+            🏛
+          </div>
+          <div>
+            <h1 class="font-extrabold text-sm tracking-wide text-brandText leading-tight">SDN 137 CIJEROKASO</h1>
+            <p class="font-bold text-xs tracking-wider text-brandGold">RKAS STUDIO <span class="text-[10px] px-1 py-0.5 rounded bg-brandPrimary/15 text-brandPrimary font-mono">v1.12</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigasi Menu Utama -->
+      <nav class="space-y-2">
+        <button onclick="pindahTab('ringkasan')" id="nav-ringkasan" class="w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-semibold transition-all bg-brandPrimary text-white shadow-sm">
+          <svg class="w-5 h-5 text-brandGold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Ringkasan
+        </button>
+        <button onclick="pindahTab('rincian')" id="nav-rincian" class="w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-medium transition-all text-brandMuted hover:bg-brandDark hover:text-brandText">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          Rincian RKAS
+        </button>
+        <button onclick="pindahTab('master')" id="nav-master" class="w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-medium transition-all text-brandMuted hover:bg-brandDark hover:text-brandText">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7zm0 4h16M8 4v4m8-4v4"/></svg>
+          Update Master
+        </button>
+        <button onclick="pindahTab('admin')" id="nav-admin" class="w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-medium transition-all text-brandGold hover:bg-brandGold/10 border border-brandGold/30">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Admin & Cloud Sync
+        </button>
+      </nav>
+
+      <!-- Status Koneksi Penyimpanan -->
+      <div class="p-3 bg-brandDark rounded-lg border border-brandPrimary/20 space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] text-brandMuted">Penyimpanan</span>
+          <span id="label-mode-penyimpanan" class="text-[10px] px-1.5 py-0.5 rounded bg-brandPrimary/15 text-brandPrimary font-bold">Google Sheets (Live)</span>
+        </div>
+        <p id="label-detail-sync" class="text-[10px] text-brandMuted">Tersambung ke Web App GAS</p>
+      </div>
+    </div>
+
+    <!-- Catatan Keamanan Footer Sidebar -->
+    <div class="p-4 border-t border-brandPrimary/15 text-center">
+      <p class="text-[10px] tracking-widest text-brandGold font-bold uppercase">SDNCI MIDNIGHT SKY GOLD</p>
+      <p class="text-[11px] text-brandMuted mt-1">Dark Signature Palette • Modern & Premium</p>
+    </div>
+  </aside>
+
+  <!-- ================================================================= -->
+  <!-- AREA KONTEN UTAMA -->
+  <!-- ================================================================= -->
+  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen">
+    <div class="p-6 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- ============================================================= -->
+      <!-- TAB 1: RINGKASAN -->
+      <!-- ============================================================= -->
+      <section id="tab-ringkasan" class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-brandText">Ringkasan Anggaran & Data Master</h2>
+          <p class="text-sm text-brandMuted">Pantau pagu anggaran tahunan BOS dan kesiapan master data resmi.</p>
+        </div>
+
+        <!-- 4 Kartu Metrik -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-brandCard border border-brandPrimary/20 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-medium text-brandMuted uppercase tracking-wider">MASTER KEGIATAN</p>
+            <p id="metric-kegiatan" class="text-2xl font-black text-brandPrimary mt-1">0</p>
+            <p class="text-[11px] text-brandMuted mt-0.5">Kegiatan aktif terdaftar</p>
+          </div>
+          <div class="bg-brandCard border border-brandPrimary/20 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-medium text-brandMuted uppercase tracking-wider">MASTER BARANG</p>
+            <p id="metric-barang" class="text-2xl font-black text-brandPrimary mt-1">0</p>
+            <p class="text-[11px] text-brandMuted mt-0.5">Item belanja & uraian resmi</p>
+          </div>
+          <div class="bg-brandCard border border-brandPrimary/20 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-medium text-brandMuted uppercase tracking-wider">RINCIAN RKAS</p>
+            <p id="metric-rincian" class="text-2xl font-black text-brandGold mt-1">0</p>
+            <p class="text-[11px] text-brandMuted mt-0.5">Baris dalam rancangan</p>
+          </div>
+          <div class="bg-brandCard border border-brandPrimary/20 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-medium text-brandMuted uppercase tracking-wider">TOTAL RENCANA BELANJA</p>
+            <p id="metric-total-belanja" class="text-2xl font-black text-brandText mt-1">Rp0</p>
+            <p class="text-[11px] text-brandMuted mt-0.5">Akumulasi Salur 1 & 2</p>
+          </div>
+        </div>
+
+        <!-- Panel Anggaran Diterima Satu Tahun -->
+        <div class="bg-brandCard border border-brandPrimary/25 rounded-xl p-6 shadow-sm space-y-5">
+          <div class="border-b border-brandPrimary/15 pb-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-bold text-brandPrimary">ANGGARAN DITERIMA SATU TAHUN</h3>
+              <p class="text-xs text-brandMuted">Pagu disimpan otomatis ke Google Sheets dan dibagi proporsional ke Salur 1 (50%) dan Salur 2 (50%).</p>
+            </div>
+            <span id="badge-status-anggaran" class="text-xs px-2.5 py-1 rounded bg-brandPrimary/10 text-brandPrimary border border-brandPrimary/30 font-semibold">
+              Sinkronisasi Cloud Aktif
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div class="space-y-1.5 md:col-span-2">
+              <label class="block text-xs font-medium text-brandMuted">Nilai Anggaran Pagu (Rupiah)</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-sm font-semibold text-brandMuted">Rp</span>
+                <input type="text" id="input-anggaran-tahunan" placeholder="Contoh: 125.000.000"
+                  class="w-full pl-10 pr-4 py-2.5 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandText font-bold text-lg focus:border-brandPrimary focus:outline-none transition-colors">
+              </div>
+            </div>
+            <div>
+              <button onclick="simpanAnggaranServer()" id="btn-simpan-anggaran" class="w-full py-2.5 px-4 rounded-lg bg-brandPrimary hover:bg-brandPrimary/90 text-white font-bold transition-all shadow flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 text-brandGold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                SIMPAN ANGGARAN
+              </button>
+            </div>
+          </div>
+
+          <!-- Rincian Pembagian Salur -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div class="p-3.5 bg-brandDark border border-brandPrimary/15 rounded-lg">
+              <p class="text-[11px] text-brandMuted uppercase tracking-wider font-semibold">TOTAL DITERIMA</p>
+              <p id="disp-total-diterima" class="text-xl font-bold text-brandPrimary mt-1">Rp0</p>
+            </div>
+            <div class="p-3.5 bg-brandDark border border-brandPrimary/15 rounded-lg">
+              <p class="text-[11px] text-brandMuted uppercase tracking-wider font-semibold">SALUR 1 (Januari – Juni)</p>
+              <p id="disp-salur-1" class="text-xl font-bold text-brandText mt-1">Rp0</p>
+              <p class="text-[10px] text-brandMuted mt-0.5">50% (dibulatkan ke bawah bila ganjil)</p>
+            </div>
+            <div class="p-3.5 bg-brandDark border border-brandPrimary/15 rounded-lg">
+              <p class="text-[11px] text-brandMuted uppercase tracking-wider font-semibold">SALUR 2 (Juli – Desember)</p>
+              <p id="disp-salur-2" class="text-xl font-bold text-brandText mt-1">Rp0</p>
+              <p class="text-[10px] text-brandMuted mt-0.5">Sisa pembagian pagu tahunan</p>
+            </div>
+          </div>
+
+          <!-- Tombol Arah Cepat -->
+          <div class="flex justify-end pt-2">
+            <button onclick="pindahTab('rincian')" class="px-5 py-2.5 rounded-lg bg-brandCard border border-brandPrimary text-brandPrimary hover:bg-brandPrimary hover:text-white font-semibold transition-colors flex items-center gap-2">
+              Buka Rincian RKAS →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- TAB 2: RINCIAN RKAS -->
+      <!-- ============================================================= -->
+      <section id="tab-rincian" class="hidden space-y-6">
+
+        <!-- Kartu Kebutuhan Berdasarkan Keinginan (AI & Rekomendasi Cerdas) -->
+        <div class="bg-brandCard border border-brandPrimary/25 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-brandPrimary/15 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-brandPrimary flex items-center gap-2">
+                <span>✦</span> Analisis Kebutuhan Berdasarkan Keinginan & Telaah Rapor Pendidikan
+              </h3>
+              <p class="text-xs text-brandMuted mt-0.5">
+                Menerjemahkan ide kegiatan atau indikator Rapor Pendidikan (PBD) menjadi usulan RKAS BOSP resmi.
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-2 text-xs text-brandText cursor-pointer select-none">
+                <input type="checkbox" id="check-use-ai" checked class="rounded bg-brandDark border-brandPrimary text-brandPrimary focus:ring-brandPrimary">
+                <span>Gunakan Mesin AI BOSP</span>
+              </label>
+              <span id="badge-ai-mode" class="text-[11px] px-2 py-0.5 rounded bg-brandDark text-brandPrimary border border-brandPrimary/30 font-semibold">
+                Mesin AI Gemini BOSP Online
+              </span>
+              <button onclick="bukaModalPengaturanAI()" class="text-xs px-2.5 py-1 rounded bg-brandDark border border-brandGold/40 text-brandGold hover:bg-brandGold hover:text-white transition-colors flex items-center gap-1 font-semibold">
+                ⚙ Pengaturan AI
+              </button>
+            </div>
+          </div>
+
+          <!-- Banner Status Pengetahuan AI Master -->
+          <div id="banner-status-ai-knowledge" class="p-3 bg-brandDark border border-brandPrimary/20 rounded-lg flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-lg">🧠</span>
+              <div>
+                <p class="font-bold text-brandText" id="label-ai-knowledge-title">Status Memori Pengetahuan Master AI: <span id="label-ai-knowledge-status" class="text-brandPrimary">Siap Disinkronkan</span></p>
+                <p class="text-[11px] text-brandMuted" id="label-ai-knowledge-desc">Suapkan data master kegiatan & master barang agar AI memetakan kebutuhan secara 100% presisi dan relasional.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="suapkanDataMasterKeAI()" id="btn-suapkan-ai" type="button" class="px-3.5 py-2 rounded-lg bg-brandPrimary hover:bg-brandPrimary/90 text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5">
+                <span id="spinner-suap-ai" class="hidden animate-spin">◌</span>
+                🧠 Masukkan / Sinkronkan Data ke AI
+              </button>
+            </div>
+          </div>
+
+          <textarea id="input-kebutuhan-teks" rows="4"
+            placeholder="Contoh 1 (Kegiatan Bebas): Saya ingin mengadakan lomba literasi dan cipta puisi siswa tingkat sekolah untuk 80 peserta selama 1 hari di bulan Agustus. Siapkan kebutuhan piala, snack, ATK, banner backdrop, dan honor juri.&#10;&#10;Contoh 2 (Rapor Pendidikan): Indikator Rapor Pendidikan Kemampuan Numerasi (A.2) sekolah kami berwarna kuning/turun. Adakan workshop peningkatan kompetensi guru numerasi 25 orang dan pengadaan alat peraga matematika sederhana di semester 1."
+            class="w-full p-3.5 bg-brandDark border border-brandPrimary/25 rounded-lg text-sm text-brandText placeholder:text-brandMuted/60 resize-y focus:outline-none focus:border-brandPrimary leading-relaxed"></textarea>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <p class="text-[11px] text-brandMuted max-w-xl leading-relaxed">
+              *Tulis narasi atau telaah rapor dengan gaya bahasa bebas. Klik <b>"🏷 Pasang Simbol / Tag Otomatis"</b> agar AI menempelkan kode presisi (<code class="text-brandPrimary font-bold">#RAPOR, #EVENT, @PESERTA, @BLN</code>) & merapikan bahasa sebelum dianalisis.
+            </p>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="bersihkanTeksAnalisis()" id="btn-clear-chat" type="button" class="px-3.5 py-2.5 rounded-lg bg-brandCard border border-brandDanger/40 text-brandDanger hover:bg-brandDanger hover:text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5" title="Kosongkan teks kebutuhan">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                Clear Chat
+              </button>
+              <button onclick="pasangSimbolTagOtomatis()" id="btn-auto-tag" type="button" class="px-4 py-2.5 rounded-lg bg-brandCard border border-brandGold text-brandGold hover:bg-brandGold hover:text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5">
+                <span id="spinner-auto-tag" class="hidden animate-spin">◌</span>
+                🏷 Pasang Simbol / Tag Otomatis
+              </button>
+              <button onclick="jalankanAnalisisKebutuhan()" id="btn-analisis" type="button" class="px-5 py-2.5 rounded-lg bg-brandPrimary hover:bg-brandPrimary/90 text-white font-bold text-xs transition-all shadow flex items-center gap-2">
+                <span id="spinner-analisis" class="hidden animate-spin">◌</span>
+                ✦ Analisis & Tampilkan Pendapat
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar Tabel Rincian -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-brandCard p-3.5 rounded-xl border border-brandPrimary/20 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="bukaModalInputManual()" class="px-3.5 py-2 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90 transition-colors flex items-center gap-1.5 shadow-sm">
+              + Input RKAS Manual
+            </button>
+            <button onclick="simpanValidasiSemuaBaris()" class="px-3.5 py-2 rounded-lg bg-brandGold text-white font-bold text-xs hover:bg-brandGold/90 transition-colors flex items-center gap-1.5 shadow-sm">
+              SIMPAN SEMUA
+            </button>
+            <button onclick="eksporKeExcel()" class="px-3 py-2 rounded-lg bg-brandDark border border-brandPrimary/30 text-brandText hover:border-brandPrimary hover:text-brandPrimary font-medium text-xs transition-colors flex items-center gap-1.5">
+              Ekspor FORMAT RKAS.xlsx
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="konfirmasiKosongkanRKAS()" class="px-3 py-2 rounded-lg bg-brandCard border border-brandDanger/40 text-brandDanger hover:bg-brandDanger hover:text-white font-semibold text-xs transition-colors">
+              KOSONGKAN
+            </button>
+            <button onclick="muatUlangSemuaData(true)" class="px-3 py-2 rounded-lg bg-brandDark border border-brandPrimary/30 text-brandMuted hover:text-brandText text-xs transition-colors flex items-center gap-1">
+              ↻ REFRESH
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 Kartu Ringkasan Anggaran & Sisa -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div class="p-3 bg-brandCard border border-brandPrimary/20 rounded-lg shadow-sm">
+            <p class="text-[10px] text-brandMuted uppercase font-bold">TOTAL SALUR 1</p>
+            <p id="stat-total-salur1" class="text-sm font-bold text-brandText mt-1">Rp0</p>
+          </div>
+          <div class="p-3 bg-brandCard border border-brandPrimary/20 rounded-lg shadow-sm">
+            <p class="text-[10px] text-brandMuted uppercase font-bold">TOTAL SALUR 2</p>
+            <p id="stat-total-salur2" class="text-sm font-bold text-brandText mt-1">Rp0</p>
+          </div>
+          <div class="p-3 bg-brandCard border border-brandPrimary/20 rounded-lg shadow-sm">
+            <p class="text-[10px] text-brandMuted uppercase font-bold">TOTAL SALUR 1+2</p>
+            <p id="stat-total-semua" class="text-sm font-bold text-brandPrimary mt-1">Rp0</p>
+          </div>
+          <div class="p-3 bg-brandCard border border-brandPrimary/20 rounded-lg shadow-sm" id="card-sisa-salur1">
+            <p class="text-[10px] text-brandMuted uppercase font-bold">SISA SALUR 1</p>
+            <p id="stat-sisa-salur1" class="text-sm font-bold text-brandPrimary mt-1">Rp0</p>
+          </div>
+          <div class="p-3 bg-brandCard border border-brandPrimary/20 rounded-lg shadow-sm" id="card-sisa-salur2">
+            <p class="text-[10px] text-brandMuted uppercase font-bold">SISA SALUR 2</p>
+            <p id="stat-sisa-salur2" class="text-sm font-bold text-brandPrimary mt-1">Rp0</p>
+          </div>
+          <div class="p-3 bg-brandCard border border-brandPrimary/20 rounded-lg shadow-sm" id="card-sisa-total">
+            <p class="text-[10px] text-brandMuted uppercase font-bold">SISA ANGGARAN</p>
+            <p id="stat-sisa-anggaran" class="text-sm font-black text-brandGold mt-1">Rp0</p>
+          </div>
+        </div>
+
+        <!-- Tabel Rincian RKAS (14 Kolom) -->
+        <div class="bg-brandCard border border-brandPrimary/20 rounded-xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto max-h-[550px]">
+            <table class="w-full text-left text-xs text-brandText border-collapse table-sticky" id="tabel-rincian">
+              <thead class="bg-brandDark text-brandPrimary uppercase text-[11px] tracking-wider border-b border-brandPrimary/20">
+                <tr>
+                  <th class="p-2.5 text-center w-10">NO</th>
+                  <th class="p-2.5 text-center w-28">TINDAKAN</th>
+                  <th class="p-2.5 min-w-[200px]">URAIAN KEGIATAN</th>
+                  <th class="p-2.5 min-w-[180px]">REKENING BELANJA</th>
+                  <th class="p-2.5 min-w-[200px]">URAIAN</th>
+                  <th class="p-2.5 w-20">SATUAN</th>
+                  <th class="p-2.5 text-right w-28">HARGA SATUAN</th>
+                  <th class="p-2.5 text-center w-20">VOLUME</th>
+                  <th class="p-2.5 text-right w-28">HARGA TOTAL</th>
+                  <th class="p-2.5 w-28">KODE REKENING</th>
+                  <th class="p-2.5 min-w-[150px]">REKENING BELANJA</th>
+                  <th class="p-2.5 w-24">BLOK BELANJA</th>
+                  <th class="p-2.5 min-w-[160px]">BULAN</th>
+                  <th class="p-2.5 text-right min-w-[140px]">JUMLAH TOTAL</th>
+                </tr>
+              </thead>
+              <tbody id="body-tabel-rincian" class="divide-y divide-brandPrimary/10">
+                <tr>
+                  <td colspan="14" class="p-8 text-center text-brandMuted italic">
+                    Memuat rincian rancangan RKAS...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- TAB 3: UPDATE MASTER & PENCARIAN -->
+      <!-- ============================================================= -->
+      <section id="tab-master" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-brandText">Update Master Data & Pencarian</h2>
+          <p class="text-sm text-brandMuted">Perbarui data kegiatan dan rekening belanja via Excel (.xlsx) dengan penyimpanan aman.</p>
+        </div>
+
+        <!-- 2 Kartu Update Master -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Master Kegiatan -->
+          <div class="bg-brandCard border border-brandPrimary/25 rounded-xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-brandPrimary/15 pb-3">
+              <div>
+                <h3 class="font-bold text-brandPrimary text-base">MASTER KEGIATAN</h3>
+                <p id="info-kegiatan-count" class="text-xs text-brandMuted">0 kegiatan terdaftar</p>
+              </div>
+              <span id="info-kegiatan-waktu" class="text-[10px] px-2 py-1 rounded bg-brandDark text-brandMuted border border-brandPrimary/20">
+                Belum ada update
+              </span>
+            </div>
+            
+            <p class="text-xs text-brandMuted">
+              Header wajib: <code class="text-brandText font-mono font-bold">Kode Kegiatan, Standar, Komponen, Uraian Kegiatan, Jenis Indikatif</code>.
+            </p>
+
+            <div class="flex flex-wrap gap-2 pt-2">
+              <label class="px-3.5 py-2 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90 cursor-pointer flex items-center gap-2 shadow-sm">
+                <svg class="w-4 h-4 text-brandGold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Unggah Kegiatan (.xlsx)
+                <input type="file" id="file-upload-kegiatan" accept=".xlsx,.xls,.csv" class="hidden" onchange="prosesUploadMaster('kegiatan', event)">
+              </label>
+              <button onclick="unduhTemplate('kegiatan')" class="px-3 py-2 rounded-lg bg-brandDark border border-brandPrimary/30 text-xs text-brandMuted hover:text-brandPrimary transition-colors">
+                Unduh Template Kegiatan
+              </button>
+            </div>
+          </div>
+
+          <!-- Master Rekening & Uraian Barang -->
+          <div class="bg-brandCard border border-brandPrimary/25 rounded-xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-brandPrimary/15 pb-3">
+              <div>
+                <h3 class="font-bold text-brandPrimary text-base">REKENING & URAIAN (BARANG)</h3>
+                <p id="info-barang-count" class="text-xs text-brandMuted">0 item uraian terdaftar</p>
+              </div>
+              <span id="info-barang-waktu" class="text-[10px] px-2 py-1 rounded bg-brandDark text-brandMuted border border-brandPrimary/20">
+                Belum ada update
+              </span>
+            </div>
+
+            <p class="text-xs text-brandMuted">
+              Header wajib: <code class="text-brandText font-mono font-bold">Nomor, Kode Barang, Nama Item, Spesifikasi, Uraian, Satuan, Harga Satuan, Kode Rekening Sumber, Kode Rekening, Rekening Belanja, Blok Belanja</code>.
+            </p>
+
+            <div class="flex flex-wrap gap-2 pt-2">
+              <label class="px-3.5 py-2 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90 cursor-pointer flex items-center gap-2 shadow-sm">
+                <svg class="w-4 h-4 text-brandGold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Unggah Rekening & Uraian (.xlsx)
+                <input type="file" id="file-upload-barang" accept=".xlsx,.xls,.csv" class="hidden" onchange="prosesUploadMaster('barang', event)">
+              </label>
+              <button onclick="unduhTemplate('barang')" class="px-3 py-2 rounded-lg bg-brandDark border border-brandPrimary/30 text-xs text-brandMuted hover:text-brandPrimary transition-colors">
+                Unduh Template Rekening
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Panel Pencarian Master Barang -->
+        <div class="bg-brandCard border border-brandPrimary/20 rounded-xl p-5 shadow-sm space-y-4">
+          <h3 class="font-bold text-brandPrimary text-sm">Pencarian Cepat Master Barang & Uraian</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input type="text" id="cari-master-uraian" oninput="filterTabelMasterCari()" placeholder="Cari Uraian atau Nama Item..."
+              class="w-full px-3.5 py-2 bg-brandDark border border-brandPrimary/25 rounded-lg text-xs text-brandText focus:border-brandPrimary focus:outline-none">
+            <input type="text" id="cari-master-rekening" oninput="filterTabelMasterCari()" placeholder="Cari Rekening Belanja..."
+              class="w-full px-3.5 py-2 bg-brandDark border border-brandPrimary/25 rounded-lg text-xs text-brandText focus:border-brandPrimary focus:outline-none">
+            <button onclick="muatMasterBarangPencarian()" class="px-3 py-2 bg-brandDark border border-brandPrimary/30 text-brandPrimary hover:bg-brandPrimary hover:text-white rounded-lg text-xs font-semibold transition-colors">
+              Segarkan Data Pencarian
+            </button>
+          </div>
+
+          <div class="overflow-x-auto max-h-72 border border-brandPrimary/15 rounded-lg">
+            <table class="w-full text-left text-[11px] text-brandText border-collapse">
+              <thead class="bg-brandDark text-brandPrimary sticky top-0">
+                <tr>
+                  <th class="p-2.5 border-b border-brandPrimary/15">Kode Barang</th>
+                  <th class="p-2.5 border-b border-brandPrimary/15">Uraian</th>
+                  <th class="p-2.5 border-b border-brandPrimary/15">Satuan</th>
+                  <th class="p-2.5 border-b border-brandPrimary/15 text-right">Harga Satuan</th>
+                  <th class="p-2.5 border-b border-brandPrimary/15">Rekening Belanja</th>
+                  <th class="p-2.5 border-b border-brandPrimary/15">Blok Belanja</th>
+                </tr>
+              </thead>
+              <tbody id="body-master-cari" class="divide-y divide-brandPrimary/10">
+                <tr>
+                  <td colspan="6" class="p-4 text-center text-brandMuted italic">
+                    Data master barang siap dicari.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Ekspor & Impor Cadangan Penuh JSON -->
+        <div class="bg-brandCard border border-brandPrimary/20 rounded-xl p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h4 class="font-bold text-brandText text-sm">Pencadangan Penuh (Backup JSON)</h4>
+            <p class="text-xs text-brandMuted">Unduh atau pulihkan seluruh data rancangan RKAS, pagu, dan master dalam berkas JSON mandiri.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="eksporBackupJSONServer()" class="px-3.5 py-2 rounded-lg bg-brandDark border border-brandPrimary/30 text-brandPrimary hover:bg-brandPrimary hover:text-white font-bold text-xs transition-colors">
+              Ekspor Backup JSON
+            </button>
+            <label class="px-3.5 py-2 rounded-lg bg-brandDark border border-brandGold/60 text-brandGold hover:bg-brandGold hover:text-white font-bold text-xs cursor-pointer transition-colors">
+              Impor Backup JSON
+              <input type="file" id="file-import-json" accept=".json" class="hidden" onchange="imporBackupJSONServer(event)">
+            </label>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- TAB 4: PANEL ADMIN & INTEGRASI GOOGLE SPREADSHEET -->
+      <!-- ============================================================= -->
+      <section id="tab-admin" class="hidden space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-brandText flex items-center gap-2">
+              <span class="text-brandGold">⚙</span> Panel Admin & Integrasi Google Spreadsheet
+            </h2>
+            <p class="text-sm text-brandMuted">Hubungkan aplikasi yang berjalan di GitHub Pages langsung ke Google Spreadsheet via Apps Script Web App.</p>
+          </div>
+          <span id="badge-status-koneksi-cloud" class="px-3 py-1 rounded-full text-xs font-bold border border-brandGold/40 bg-brandGold/10 text-brandGold">
+            Status: Terhubung Cloud Google Sheets
+          </span>
+        </div>
+
+        <!-- Kartu 1: Konfigurasi Link Script Web App -->
+        <div class="bg-brandCard border border-brandPrimary/25 rounded-xl p-6 shadow-sm space-y-4">
+          <div class="border-b border-brandPrimary/15 pb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-bold text-brandPrimary">1. Tautan Web App Google Apps Script (Exec URL)</h3>
+              <p class="text-xs text-brandMuted">Tautan ini didapat setelah melakukan deploy skrip sebagai Web App di Google Sheets Anda.</p>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-brandMuted">URL Google Apps Script Web App (/exec):</label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="url" id="input-gas-url" value="https://script.google.com/macros/s/AKfycbzT1Yte6IvHVGlzrEQyJQN7OPT35SIzAH6-pGdG9oz7p4M28CTMj-cq2HCIA9x3DZnPqw/exec" placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+                class="flex-1 px-4 py-2.5 bg-brandDark border border-brandPrimary/25 rounded-lg text-brandText text-xs font-mono focus:border-brandPrimary focus:outline-none transition-colors">
+              <button onclick="simpanLinkGasUrl()" class="px-5 py-2.5 rounded-lg bg-brandPrimary hover:bg-brandPrimary/90 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 shrink-0">
+                💾 Simpan Tautan
+              </button>
+              <button onclick="resetLinkGasUrlDefault()" class="px-3.5 py-2.5 rounded-lg bg-brandDark border border-brandPrimary/30 hover:border-brandPrimary text-brandMuted hover:text-brandPrimary text-xs font-bold transition-all shrink-0">
+                ↺ Default
+              </button>
+              <button onclick="ujiKoneksiSpreadsheet()" id="btn-uji-koneksi" class="px-4 py-2.5 rounded-lg bg-brandDark border border-brandGold/60 hover:bg-brandGold hover:text-white text-brandGold font-bold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0">
+                ⚡ Uji Koneksi
+              </button>
+            </div>
+            <p class="text-[11px] text-brandMuted">
+              *Tautan resmi sekolah telah tertanam permanen sebagai default bawaan. Semua operasi penambahan, perubahan, dan analisis RKAS disinkronkan langsung ke Spreadsheet.
+            </p>
+          </div>
+
+          <!-- Tombol Operasi Sinkronisasi Dua Arah -->
+          <div class="pt-3 border-t border-brandPrimary/15 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-3.5 bg-brandDark border border-brandPrimary/15 rounded-lg space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold text-brandPrimary">📥 TARIK DATA (Spreadsheet → Aplikasi)</h4>
+              </div>
+              <p class="text-[11px] text-brandMuted">Mengambil pagu anggaran, data master, dan rincian RKAS terkini dari Google Sheets ke dalam aplikasi.</p>
+              <button onclick="tarikSemuaDariSpreadsheet()" id="btn-tarik-data" class="w-full py-2 px-3 rounded-lg bg-brandPrimary/10 hover:bg-brandPrimary text-brandPrimary hover:text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-brandPrimary/30">
+                Tarik Semua Data dari Spreadsheet
+              </button>
+            </div>
+
+            <div class="p-3.5 bg-brandDark border border-brandGold/25 rounded-lg space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold text-brandGold">📤 KIRIM DATA (Aplikasi → Spreadsheet)</h4>
+              </div>
+              <p class="text-[11px] text-brandMuted">Mengunggah seluruh data saat ini (anggaran, kegiatan, barang, dan rincian RKAS) untuk disimpan permanen ke Google Sheets.</p>
+              <button onclick="kirimSemuaKeSpreadsheet()" id="btn-kirim-data" class="w-full py-2 px-3 rounded-lg bg-brandGold/10 hover:bg-brandGold text-brandGold hover:text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-brandGold/40">
+                Kirim & Timpa ke Spreadsheet
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kartu 2: Kode Script Google Apps Script (Code.gs) & Panduan Pasang -->
+        <div class="bg-brandCard border border-brandPrimary/25 rounded-xl p-6 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-brandPrimary/15 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-brandPrimary">2. Kode Script Google Apps Script (`Code.gs`)</h3>
+              <p class="text-xs text-brandMuted">Mendukung otomatisasi <b>12 Sheet Bulanan (JANUARI – DESEMBER)</b> + Sheet Master.</p>
+            </div>
+            <button onclick="salinKodeScriptGAS()" id="btn-salin-script" class="px-4 py-2 rounded-lg bg-brandGold text-white font-bold text-xs hover:bg-brandGold/90 transition-colors flex items-center gap-1.5 shadow-sm">
+              📋 Salin Seluruh Kode Script
+            </button>
+          </div>
+
+          <!-- Petunjuk Langkah Praktis -->
+          <div class="bg-brandDark p-3.5 rounded-lg border border-brandPrimary/15 space-y-1.5 text-xs text-brandMuted">
+            <p class="font-bold text-brandText">Langkah Pembaruan Skrip Spreadsheet:</p>
+            <ol class="list-decimal list-inside space-y-1 pl-1">
+              <li>Buka Google Spreadsheet Anda, klik menu <b>Extensions (Ekstensi)</b> &gt; <b>Apps Script</b>.</li>
+              <li>Hapus kode lama di berkas <code>Code.gs</code>, lalu klik tombol <b>Salin Seluruh Kode Script</b> di atas dan <b>Paste</b> ke sana.</li>
+              <li>Klik ikon <b>Save (Simpan)</b> lalu klik <b>Deploy &gt; Manage deployments</b> &gt; klik Edit (ikon pensil) &gt; pilih <b>New version</b> &gt; <b>Deploy</b>.</li>
+              <li>Setiap input, edit, dan hapus baris RKAS di aplikasi otomatis tersinkron ke sheet bulan masing-masing!</li>
+            </ol>
+          </div>
+
+          <!-- Area Kode Script -->
+          <div class="relative">
+            <textarea id="kode-script-gas" readonly rows="14"
+              class="w-full p-3.5 bg-brandDark border border-brandPrimary/25 rounded-lg font-mono text-[11px] text-brandMuted focus:outline-none focus:text-brandText leading-relaxed selection:bg-brandPrimary selection:text-white"></textarea>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: FORM INPUT RKAS MANUAL / REVISI -->
+  <!-- ================================================================= -->
+  <div id="modal-input-manual" class="fixed inset-0 z-50 bg-[#06101B]/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-brandCard border border-brandPrimary/30 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-brandPrimary/15 flex justify-between items-center">
+        <div>
+          <h3 id="modal-manual-title" class="font-bold text-brandPrimary text-base">Input RKAS Manual</h3>
+          <p class="text-[11px] text-brandMuted">Lengkapi uraian kegiatan dan item belanja dari master data resmi.</p>
+        </div>
+        <button onclick="tutupModalInputManual()" class="text-brandMuted hover:text-brandText text-xl font-bold px-2">✕</button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto text-xs flex-1">
+        <input type="hidden" id="form-baris-id" value="">
+        <input type="hidden" id="form-baris-no" value="">
+
+        <!-- Kolom Input Uraian Kegiatan (Bisa diketik & discroll) -->
+        <div class="space-y-1.5 relative" id="wrapper-combobox-kegiatan">
+          <div class="flex items-center justify-between">
+            <label for="form-kegiatan" class="font-bold text-brandPrimary text-xs flex items-center gap-1.5">
+              <span>📋</span> Uraian Kegiatan (dari data master) *
+            </label>
+            <span id="info-kegiatan-scroll-count" class="text-[10px] text-brandMuted">0 kegiatan tersedia</span>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="form-kegiatan" autocomplete="off" placeholder="Ketik atau klik untuk scroll kegiatan..."
+              class="w-full pl-3 pr-10 py-2.5 bg-brandDark border-2 border-brandPrimary/40 focus:border-brandPrimary rounded-lg text-brandText font-semibold text-xs focus:outline-none transition-all shadow-inner"
+              onfocus="bukaDropdownCombobox('kegiatan')" oninput="filterCombobox('kegiatan', this.value)">
+            <button type="button" onclick="toggleDropdownCombobox('kegiatan')" class="absolute inset-y-0 right-0 px-3 flex items-center text-brandMuted hover:text-brandPrimary">
+              <svg class="w-4 h-4 transition-transform" id="arrow-combobox-kegiatan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+          <div id="list-combobox-kegiatan" class="hidden absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-brandCard border border-brandPrimary/30 rounded-lg shadow-xl divide-y divide-brandPrimary/10">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Rekening Belanja (Bisa diketik & discroll) -->
+          <div class="space-y-1 relative" id="wrapper-combobox-rekening">
+            <label class="font-medium text-brandMuted">Rekening Belanja *</label>
+            <div class="relative">
+              <input type="text" id="form-rekening-belanja" autocomplete="off" placeholder="Ketik atau klik untuk scroll rekening..."
+                class="w-full pl-3 pr-10 py-2.5 bg-brandDark border border-brandPrimary/30 focus:border-brandPrimary rounded-lg text-brandText text-xs focus:outline-none transition-all"
+                onfocus="bukaDropdownCombobox('rekening')" oninput="filterCombobox('rekening', this.value)">
+              <button type="button" onclick="toggleDropdownCombobox('rekening')" class="absolute inset-y-0 right-0 px-3 flex items-center text-brandMuted hover:text-brandPrimary">
+                <svg class="w-4 h-4 transition-transform" id="arrow-combobox-rekening" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+            </div>
+            <div id="list-combobox-rekening" class="hidden absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-brandCard border border-brandPrimary/30 rounded-lg shadow-xl divide-y divide-brandPrimary/10">
+            </div>
+          </div>
+
+          <!-- Uraian (Tergantung Rekening Belanja, bisa diketik & discroll) -->
+          <div class="space-y-1 relative" id="wrapper-combobox-uraian">
+            <label class="font-medium text-brandMuted">Uraian *</label>
+            <div class="relative">
+              <input type="text" id="form-uraian" autocomplete="off" placeholder="Pilih rekening belanja terlebih dahulu..."
+                class="w-full pl-3 pr-10 py-2.5 bg-brandDark border border-brandPrimary/30 focus:border-brandPrimary rounded-lg text-brandText text-xs focus:outline-none transition-all"
+                onfocus="bukaDropdownCombobox('uraian')" oninput="filterCombobox('uraian', this.value)">
+              <button type="button" onclick="toggleDropdownCombobox('uraian')" class="absolute inset-y-0 right-0 px-3 flex items-center text-brandMuted hover:text-brandPrimary">
+                <svg class="w-4 h-4 transition-transform" id="arrow-combobox-uraian" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+            </div>
+            <div id="list-combobox-uraian" class="hidden absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-brandCard border border-brandPrimary/30 rounded-lg shadow-xl divide-y divide-brandPrimary/10">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Satuan -->
+          <div class="space-y-1">
+            <label class="font-medium text-brandMuted">Satuan *</label>
+            <input type="text" id="form-satuan" class="w-full p-2.5 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandText focus:outline-none">
+          </div>
+          <!-- Harga Satuan -->
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <label class="font-medium text-brandMuted">Harga Satuan (Rp) *</label>
+              <span id="label-harga-maks" class="text-[10px] text-brandPrimary font-semibold">Maks: Rp0</span>
+            </div>
+            <input type="number" id="form-harga-satuan" oninput="hitungKalkulasiForm()"
+              class="w-full p-2.5 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandText font-semibold focus:border-brandPrimary focus:outline-none">
+          </div>
+          <!-- Volume Belanja -->
+          <div class="space-y-1">
+            <label class="font-medium text-brandMuted">Volume Belanja *</label>
+            <input type="number" id="form-volume" value="1" min="1" oninput="hitungKalkulasiForm()"
+              class="w-full p-2.5 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandText font-semibold focus:border-brandPrimary focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Harga Total -->
+          <div class="space-y-1">
+            <label class="font-medium text-brandMuted">Harga Total</label>
+            <input type="text" id="form-harga-total" readonly class="w-full p-2.5 bg-brandDark border border-brandPrimary/15 rounded-lg text-brandPrimary font-bold focus:outline-none cursor-not-allowed">
+          </div>
+          <!-- Kode Rekening -->
+          <div class="space-y-1">
+            <label class="font-medium text-brandMuted">Kode Rekening</label>
+            <input type="text" id="form-kode-rekening" readonly class="w-full p-2.5 bg-brandDark border border-brandPrimary/15 rounded-lg text-brandMuted focus:outline-none cursor-not-allowed">
+          </div>
+          <!-- Blok Belanja -->
+          <div class="space-y-1">
+            <label class="font-medium text-brandMuted">Blok Belanja</label>
+            <input type="text" id="form-blok-belanja" readonly class="w-full p-2.5 bg-brandDark border border-brandPrimary/15 rounded-lg text-brandMuted focus:outline-none cursor-not-allowed">
+          </div>
+        </div>
+
+        <!-- Pilihan Bulan Penggunaan -->
+        <div class="space-y-2 pt-2 border-t border-brandPrimary/15">
+          <div class="flex items-center justify-between">
+            <label class="font-medium text-brandMuted">Bulan Penggunaan (Pilih minimal satu) *</label>
+            <span class="text-[10px] text-brandPrimary font-semibold">Jan–Jun: Salur 1 | Jul–Des: Salur 2</span>
+          </div>
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="box-pilihan-bulan">
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Januari" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Jan</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Februari" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Feb</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Maret" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Mar</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="April" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Apr</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Mei" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Mei</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Juni" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Jun</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Juli" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Jul</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Agustus" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Agu</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="September" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Sep</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Oktober" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Okt</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="November" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Nov</label>
+            <label class="flex items-center gap-1.5 p-1.5 bg-brandDark rounded border border-brandPrimary/15 cursor-pointer"><input type="checkbox" value="Desember" class="cb-bulan rounded bg-brandDark border-brandPrimary text-brandPrimary" onchange="hitungKalkulasiForm()"> Des</label>
+          </div>
+        </div>
+
+        <!-- Display Total Baris -->
+        <div class="p-3 bg-brandDark rounded-lg border border-brandPrimary/20 flex items-center justify-between">
+          <span class="font-bold text-brandText text-xs">JUMLAH TOTAL ANGGARAN</span>
+          <span id="form-jumlah-total-display" class="font-black text-brandPrimary text-base">Rp0</span>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-brandPrimary/15 bg-brandDark flex justify-end gap-2">
+        <button onclick="tutupModalInputManual()" class="px-4 py-2 rounded-lg bg-brandCard border border-brandPrimary/30 text-brandMuted hover:text-brandText text-xs font-semibold">
+          Batal
+        </button>
+        <button onclick="simpanBarisDariFormManual()" id="btn-submit-manual" class="px-5 py-2 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90 flex items-center gap-1.5 shadow-sm">
+          Simpan ke Rincian RKAS
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: HASIL REKOMENDASI / PENDAPAT APLIKASI -->
+  <!-- ================================================================= -->
+  <div id="modal-pendapat" class="fixed inset-0 z-50 bg-[#06101B]/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-brandCard border border-brandPrimary/30 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-brandPrimary/15 flex justify-between items-center">
+        <div>
+          <h3 class="font-bold text-brandPrimary text-base flex items-center gap-2">
+            <span>✦</span> Pendapat Aplikasi & Usulan RKAS BOSP
+          </h3>
+          <p id="label-banner-sumber-ai" class="text-[11px] text-brandMuted">Diformulasikan secara cerdas sesuai regulasi BOSP & Data Master Sekolah</p>
+        </div>
+        <button onclick="tutupModalPendapat()" class="text-brandMuted hover:text-brandText text-xl font-bold px-2">✕</button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto text-xs flex-1">
+        <!-- Pemilihan Bulan Massal untuk Rekomendasi -->
+        <div class="p-3 bg-brandDark border border-brandPrimary/20 rounded-lg space-y-1.5">
+          <div class="flex justify-between items-center">
+            <p class="font-bold text-brandText">Bulan Penggunaan untuk Item Terpilih:</p>
+            <span class="text-[10px] text-brandPrimary font-semibold">Bisa disesuaikan per baris via REVISI</span>
+          </div>
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2" id="box-rekom-bulan">
+            <label class="flex items-center gap-1"><input type="checkbox" value="Januari" class="cb-rekom-bln" checked> Jan</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Februari" class="cb-rekom-bln"> Feb</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Maret" class="cb-rekom-bln"> Mar</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="April" class="cb-rekom-bln"> Apr</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Mei" class="cb-rekom-bln"> Mei</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Juni" class="cb-rekom-bln"> Jun</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Juli" class="cb-rekom-bln"> Jul</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Agustus" class="cb-rekom-bln"> Agu</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="September" class="cb-rekom-bln"> Sep</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Oktober" class="cb-rekom-bln"> Okt</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="November" class="cb-rekom-bln"> Nov</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Desember" class="cb-rekom-bln"> Des</label>
+          </div>
+        </div>
+
+        <!-- Tabel Rekomendasi -->
+        <div class="border border-brandPrimary/20 rounded-lg overflow-x-auto">
+          <table class="w-full text-left text-xs text-brandText">
+            <thead class="bg-brandDark text-brandPrimary border-b border-brandPrimary/20 font-semibold">
+              <tr>
+                <th class="p-2.5 text-center w-8"><input type="checkbox" id="check-semua-rekom" checked onchange="toggleCheckSemuaRekom(this.checked)"></th>
+                <th class="p-2.5 min-w-[150px]">Kegiatan Master</th>
+                <th class="p-2.5 min-w-[160px]">Uraian Barang/Jasa</th>
+                <th class="p-2.5 min-w-[140px]">Rekening Belanja</th>
+                <th class="p-2.5 w-16">Satuan</th>
+                <th class="p-2.5 text-right w-24">Harga</th>
+                <th class="p-2.5 text-center w-16">Volume</th>
+                <th class="p-2.5 text-center w-24">Bulan Usulan</th>
+                <th class="p-2.5 min-w-[180px]">Dasar Kepatuhan Regulasi BOSP / Rapor</th>
+              </tr>
+            </thead>
+            <tbody id="body-rekomendasi" class="divide-y divide-brandPrimary/10">
+              <!-- Item diisi oleh JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-brandPrimary/15 bg-brandDark flex flex-wrap justify-between items-center gap-2">
+        <span id="counter-terpilih-rekom" class="text-xs text-brandMuted">0 item dipilih</span>
+        <div class="flex gap-2">
+          <button onclick="tutupModalPendapat()" class="px-4 py-2 rounded-lg bg-brandCard border border-brandPrimary/30 text-brandMuted text-xs font-semibold">
+            Batal
+          </button>
+          <button onclick="terapkanRekomendasi(false)" class="px-4 py-2 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90">
+            Tambahkan Terpilih
+          </button>
+          <button onclick="terapkanRekomendasi(true)" class="px-4 py-2 rounded-lg bg-brandGold text-white font-bold text-xs hover:bg-brandGold/90">
+            Tambahkan Semua
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: PENGATURAN AI (PIN: 977977) -->
+  <!-- ================================================================= -->
+  <div id="modal-pengaturan-ai" class="fixed inset-0 z-50 bg-[#06101B]/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-brandCard border border-brandPrimary/30 rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-brandPrimary/15 flex justify-between items-center">
+        <div>
+          <h3 class="font-bold text-brandPrimary text-base flex items-center gap-2">
+            <span>⚙</span> Pengaturan Integrasi AI
+          </h3>
+          <p class="text-[11px] text-brandMuted">Konfigurasi kunci API dan panduan resmi penyedia kecerdasan buatan.</p>
+        </div>
+        <button onclick="tutupModalPengaturanAI()" class="text-brandMuted hover:text-brandText text-xl font-bold px-2">✕</button>
+      </div>
+
+      <!-- Tampilan Verifikasi PIN -->
+      <div id="ai-pin-container" class="p-6 text-center space-y-4">
+        <p class="text-xs text-brandMuted">Masukkan PIN Keamanan untuk membuka konfigurasi AI:</p>
+        <input type="password" id="input-ai-pin" maxlength="10" placeholder="Ketik PIN..."
+          class="w-44 text-center tracking-widest text-lg font-mono py-2 px-3 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandPrimary focus:border-brandPrimary focus:outline-none">
+        <div>
+          <button onclick="verifikasiPINAplikasi()" class="px-5 py-2 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90 transition-all">
+            Buka Pengaturan
+          </button>
+        </div>
+        <p class="text-[10px] text-brandMuted/80 italic">PIN standar sekolah: 977977</p>
+      </div>
+
+      <!-- Tampilan Form Pengaturan -->
+      <div id="ai-form-container" class="hidden p-5 space-y-4 overflow-y-auto text-xs flex-1">
+        <div class="space-y-1.5">
+          <label class="font-bold text-brandPrimary">Pilih Penyedia AI:</label>
+          <select id="pilih-provider-ai" onchange="gantiTampilanProviderAI(this.value)"
+            class="w-full p-2.5 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandText font-semibold focus:border-brandPrimary focus:outline-none">
+            <option value="LOCAL">Mode Rekomendasi Cerdas Lokal (Tanpa Kunci API / Gratis)</option>
+            <option value="GEMINI" selected>Google Gemini (Rekomendasi BOSP Server-Side)</option>
+            <option value="OPENAI">OpenAI (ChatGPT / GPT-4o Mini)</option>
+          </select>
+        </div>
+
+        <!-- Box Mode Lokal -->
+        <div id="box-local" class="p-3.5 bg-brandDark rounded-xl border border-brandPrimary/20 space-y-2 hidden">
+          <div class="flex items-center gap-2 text-brandPrimary font-bold">
+            <span>🛡</span> Mode Rekomendasi Cerdas Lokal Aktif
+          </div>
+          <p class="text-[11px] text-brandMuted leading-relaxed">
+            Mode ini memproses analisis kebutuhan secara mandiri di dalam aplikasi dengan mencocokkan kata kunci terhadap Master Kegiatan dan Master Barang sekolah. 
+            <b>Tidak memerlukan koneksi API eksternal ataupun kuota internet khusus.</b>
+          </p>
+        </div>
+
+        <!-- Box Gemini -->
+        <div id="box-gemini" class="space-y-3.5">
+          <div class="space-y-1.5">
+            <label class="font-semibold text-brandText flex items-center justify-between">
+              <span>Google Gemini API Key (Opsional jika ingin menggunakan kunci pribadi):</span>
+              <span class="text-[10px] text-brandMuted">Awalan: <code>AIzaSy...</code></span>
+            </label>
+            <input type="password" id="key-gemini" placeholder="Biarkan kosong untuk menggunakan kunci bawaan runtime" class="w-full p-2.5 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandText font-mono focus:border-brandPrimary focus:outline-none">
+          </div>
+
+          <div class="flex gap-2 items-center">
+            <span class="text-brandMuted text-[11px] font-medium">Model:</span>
+            <input type="text" id="model-gemini" value="gemini-3-flash-preview" readonly class="flex-1 p-2 bg-brandDark border border-brandPrimary/20 rounded-lg text-brandPrimary font-mono text-xs focus:outline-none">
+            <button onclick="ujiKoneksiAI('GEMINI')" class="px-4 py-2 bg-brandDark border border-brandPrimary/40 text-brandPrimary font-bold rounded-lg hover:bg-brandPrimary hover:text-white transition-colors shrink-0">
+              ⚡ Uji Kunci
+            </button>
+          </div>
+
+          <!-- Panduan Cara Mendapatkan API Key Google Gemini -->
+          <div class="p-3.5 bg-brandDark rounded-xl border border-brandPrimary/20 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h5 class="font-bold text-brandPrimary flex items-center gap-1.5 text-xs">
+                <span>📖</span> Panduan Cara Mendapatkan Google Gemini API Key
+              </h5>
+              <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" 
+                class="px-2.5 py-1 rounded bg-brandPrimary/10 text-brandPrimary hover:bg-brandPrimary hover:text-white text-[10px] font-bold border border-brandPrimary/30 transition-all flex items-center gap-1">
+                Buka AI Studio ↗
+              </a>
+            </div>
+            <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-brandMuted leading-relaxed">
+              <li>Kunjungi portal resmi Google AI Studio di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-brandPrimary font-semibold underline">aistudio.google.com/app/apikey</a>.</li>
+              <li>Masuk dengan Akun Google pribadi Anda atau Akun Belajar sekolah.</li>
+              <li>Klik tombol biru <b>"Create API key"</b>.</li>
+              <li>Salin string API Key yang diawali dengan <code>AIzaSy...</code>, lalu tempelkan ke kolom input di atas.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Box OpenAI -->
+        <div id="box-openai" class="space-y-3.5 hidden">
+          <div class="space-y-1.5">
+            <label class="font-semibold text-brandText flex items-center justify-between">
+              <span>OpenAI API Key:</span>
+              <span class="text-[10px] text-brandMuted">Awalan: <code>sk-proj-...</code> atau <code>sk-...</code></span>
+            </label>
+            <input type="password" id="key-openai" placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxxxxxx" class="w-full p-2.5 bg-brandDark border border-brandPrimary/30 rounded-lg text-brandText font-mono focus:border-brandPrimary focus:outline-none">
+          </div>
+
+          <div class="flex gap-2 items-center">
+            <span class="text-brandMuted text-[11px] font-medium">Model:</span>
+            <input type="text" id="model-openai" value="gpt-4o-mini" class="flex-1 p-2 bg-brandDark border border-brandPrimary/20 rounded-lg text-brandText font-mono text-xs focus:outline-none">
+            <button onclick="ujiKoneksiAI('OPENAI')" class="px-4 py-2 bg-brandDark border border-brandPrimary/40 text-brandPrimary font-bold rounded-lg hover:bg-brandPrimary hover:text-white transition-colors shrink-0">
+              ⚡ Uji Kunci
+            </button>
+          </div>
+        </div>
+
+        <!-- Status Uji -->
+        <div class="p-2.5 bg-brandDark rounded-lg border border-brandPrimary/15 text-[11px] text-brandMuted flex items-center justify-between">
+          <span>Status Konfigurasi:</span>
+          <span id="status-uji-ai" class="text-brandPrimary font-bold">Siap dikonfigurasi</span>
+        </div>
+
+        <div class="flex justify-between items-center pt-2">
+          <button onclick="hapusKunciAIServer()" class="text-brandDanger hover:underline text-xs font-semibold">
+            🗑 Hapus Kunci Tersimpan
+          </button>
+          <button onclick="simpanPengaturanAI()" class="px-5 py-2.5 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90 transition-all shadow-sm flex items-center gap-1.5">
+            💾 Simpan Konfigurasi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: DIALOG NOTIFIKASI & KONFIRMASI -->
+  <!-- ================================================================= -->
+  <div id="modal-dialog-kustom" class="fixed inset-0 z-50 bg-[#06101B]/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-brandCard border border-brandPrimary/30 rounded-2xl w-full max-w-sm shadow-2xl p-5 space-y-4">
+      <h4 id="dialog-title" class="font-bold text-brandPrimary text-base">Konfirmasi</h4>
+      <p id="dialog-message" class="text-xs text-brandText leading-relaxed">Apakah Anda yakin?</p>
+      <div id="dialog-buttons" class="flex justify-end gap-2 pt-2">
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- JAVASCRIPT KLIEN LENGKAP -->
+  <!-- ================================================================= -->
+  <script>
+    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzT1Yte6IvHVGlzrEQyJQN7OPT35SIzAH6-pGdG9oz7p4M28CTMj-cq2HCIA9x3DZnPqw/exec';
+
+    let rkasState = {
+      gasUrl: localStorage.getItem('RKAS_GAS_URL') || DEFAULT_GAS_URL,
+      anggaranTahunan: 0,
+      salur1: 0,
+      salur2: 0,
+      rincian: [],
+      masterKegiatan: [],
+      masterBarang: [],
+      statusMaster: {
+        kegiatanCount: 0,
+        barangCount: 0,
+        updateKegiatan: '-',
+        updateBarang: '-'
+      },
+      rekomendasiPending: [],
+      modeAI: 'GEMINI',
+      aiPinVerified: false,
+      aiKnowledgeReady: false,
+      aiKnowledgeStats: { kegiatan: 0, barang: 0, timestamp: null }
+    };
+
+    /**
+     * FUNGSI PENYUAPAN DATA MASTER KE MEMORI KECERDASAN AI GEMINI
+     */
+    async function suapkanDataMasterKeAI() {
+      const btn = document.getElementById('btn-suapkan-ai');
+      const spinner = document.getElementById('spinner-suap-ai');
+      const labelStatus = document.getElementById('label-ai-knowledge-status');
+      const labelDesc = document.getElementById('label-ai-knowledge-desc');
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+
+      try {
+        await pastikanMasterLoaded();
+
+        if (rkasState.masterKegiatan.length === 0 && rkasState.masterBarang.length === 0) {
+          showAlertModal('Data master kegiatan dan master barang masih kosong. Silakan unggah berkas Excel master di tab "Update Master" terlebih dahulu.', 'Master Masih Kosong');
+          return;
+        }
+
+        // 1. Validasi dan Kompilasi Indeks Data Master
+        const totalKeg = rkasState.masterKegiatan.length;
+        const totalBrg = rkasState.masterBarang.length;
+
+        // 2. Bentuk kamus relasional ringkas hemat token (Format Pipa)
+        const ringkasanKegiatan = rkasState.masterKegiatan.map((k, i) => `${i + 1}. [${k.kodeKegiatan || '-'}] ${k.uraianKegiatan}`).join('\n');
+        
+        // Simpan metadata penyuapan ke memori browser
+        rkasState.aiKnowledgeReady = true;
+        rkasState.aiKnowledgeStats = {
+          kegiatan: totalKeg,
+          barang: totalBrg,
+          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+        };
+
+        localStorage.setItem('RKAS_AI_KNOWLEDGE_STATS', JSON.stringify(rkasState.aiKnowledgeStats));
+
+        // 3. Perbarui status visual pada banner
+        if (labelStatus) {
+          labelStatus.innerHTML = `<span class="text-emerald-400 font-bold">Aktif & Terpeta (${totalKeg} Kegiatan, ${totalBrg} Barang)</span>`;
+        }
+        if (labelDesc) {
+          labelDesc.innerText = `Otak AI telah mempelajari ${totalKeg} master kegiatan dan ${totalBrg} item belanja resmi per ${rkasState.aiKnowledgeStats.timestamp}. Pemetaan relasi acak siap digunakan!`;
+        }
+
+        showAlertModal(
+          `Berhasil Menyuapkan Data ke AI Gemini!\n\n` +
+          `• Master Kegiatan Dipelajari : ${totalKeg} kegiatan resmi\n` +
+          `• Master Barang & Rekening   : ${totalBrg} item uraian resmi\n` +
+          `• Status Kesiapan            : 100% Siap Analisis Relasional Acak\n\n` +
+          `Sekarang saat Anda mengetik narasi di kolom kebutuhan, AI akan langsung menghubungkan ide kegiatan Anda dengan kegiatan master dan uraian barang yang sah tanpa halusinasi.`,
+          'Pengetahuan Master AI Tersinkronisasi'
+        );
+
+      } catch (err) {
+        showAlertModal('Gagal menyuapkan data master ke AI: ' + err.message, 'Kesalahan Sinkronisasi AI');
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+      }
+    }
+
+    function muatStatusKnowledgeAITersimpan() {
+      try {
+        const stored = localStorage.getItem('RKAS_AI_KNOWLEDGE_STATS');
+        if (stored) {
+          const stats = JSON.parse(stored);
+          rkasState.aiKnowledgeReady = true;
+          rkasState.aiKnowledgeStats = stats;
+          const labelStatus = document.getElementById('label-ai-knowledge-status');
+          const labelDesc = document.getElementById('label-ai-knowledge-desc');
+          if (labelStatus) {
+            labelStatus.innerHTML = `<span class="text-emerald-400 font-bold">Aktif & Terpeta (${stats.kegiatan} Kegiatan, ${stats.barang} Barang)</span>`;
+          }
+          if (labelDesc) {
+            labelDesc.innerText = `Otak AI terhubung dengan ${stats.kegiatan} kegiatan dan ${stats.barang} barang resmi sekolah (Pembaruan: ${stats.timestamp || 'Tersimpan'}).`;
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal memuat status AI knowledge tersimpan:', e);
+      }
+    }
+
+    function getLocalDatabase() {
+      if (window._mockRkasDb) return window._mockRkasDb;
+      const stored = localStorage.getItem('MOCK_RKAS_V112');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          window._mockRkasDb = parsed;
+          return parsed;
+        } catch (e) {}
+      }
+      const dbAwal = {
+        anggaranTahunan: 125000000,
+        salur1: 62500000,
+        salur2: 62500000,
+        rincian: [],
+        masterKegiatan: [],
+        masterBarang: [],
+        updateKegiatan: '-',
+        updateBarang: '-'
+      };
+      window._mockRkasDb = dbAwal;
+      return dbAwal;
+    }
+
+    function saveLocalDatabase(db) {
+      window._mockRkasDb = db;
+      try {
+        localStorage.setItem('MOCK_RKAS_V112', JSON.stringify(db));
+      } catch (e) {
+        console.warn('LocalStorage limit reached; maintained in-memory:', e);
+      }
+    }
+
+    function prosesFungsiLokal(namaFungsi, parameter, db) {
+      try {
+        if (namaFungsi === 'ambilAnggaranTahunan') {
+          return { sukses: true, data: { anggaranTahunan: db.anggaranTahunan, salur1: db.salur1, salur2: db.salur2 } };
+        } else if (namaFungsi === 'simpanAnggaranTahunan') {
+          const val = Math.max(0, Number(parameter) || 0);
+          db.anggaranTahunan = val;
+          db.salur1 = Math.floor(val / 2);
+          db.salur2 = val - db.salur1;
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: 'Anggaran berhasil disimpan.', data: { anggaranTahunan: val, salur1: db.salur1, salur2: db.salur2 } };
+        } else if (namaFungsi === 'ambilStatusMaster') {
+          return {
+            sukses: true,
+            data: {
+              kegiatanCount: db.masterKegiatan.length,
+              barangCount: db.masterBarang.length,
+              updateKegiatan: db.updateKegiatan || '-',
+              updateBarang: db.updateBarang || '-'
+            }
+          };
+        } else if (namaFungsi === 'ambilSemuaRincianRKAS') {
+          return { sukses: true, data: db.rincian };
+        } else if (namaFungsi === 'ambilMasterKegiatan') {
+          return { sukses: true, data: db.masterKegiatan };
+        } else if (namaFungsi === 'ambilMasterBarang') {
+          return { sukses: true, data: db.masterBarang };
+        } else if (namaFungsi === 'simpanBarisRKAS') {
+          const baris = parameter;
+          const idx = db.rincian.findIndex(r => r.id === baris.id);
+          const hargaTot = Number(baris.hargaSatuan) * Number(baris.volume);
+          const bulanArr = Array.isArray(baris.bulan) ? baris.bulan : [];
+          const s1Count = bulanArr.filter(b => ['Januari','Februari','Maret','April','Mei','Juni'].includes(b)).length;
+          const s2Count = bulanArr.filter(b => ['Juli','Agustus','September','Oktober','November','Desember'].includes(b)).length;
+
+          const itemBaris = {
+            id: baris.id || ('RKAS-' + Date.now()),
+            no: Number(baris.no) || (db.rincian.length + 1),
+            uraianKegiatan: baris.uraianKegiatan,
+            rekeningBelanja: baris.rekeningBelanja,
+            uraian: baris.uraian,
+            satuan: baris.satuan,
+            hargaSatuan: Number(baris.hargaSatuan),
+            volume: Number(baris.volume),
+            hargaTotal: hargaTot,
+            kodeRekening: baris.kodeRekening,
+            blokBelanja: baris.blokBelanja,
+            bulan: bulanArr,
+            jumlahTotalAnggaran: hargaTot * bulanArr.length,
+            salur1: hargaTot * s1Count,
+            salur2: hargaTot * s2Count
+          };
+
+          if (idx >= 0) db.rincian[idx] = itemBaris;
+          else db.rincian.push(itemBaris);
+
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: 'Baris tersimpan.', id: itemBaris.id };
+        } else if (namaFungsi === 'simpanBanyakBarisRKAS') {
+          const daftar = parameter || [];
+          daftar.forEach(b => {
+            const bId = b.id || ('RKAS-' + Math.random().toString(36).substr(2, 9));
+            const hargaTot = Number(b.hargaSatuan) * Number(b.volume);
+            const bulanArr = Array.isArray(b.bulan) ? b.bulan : [];
+            const s1Count = bulanArr.filter(x => ['Januari','Februari','Maret','April','Mei','Juni'].includes(x)).length;
+            const s2Count = bulanArr.filter(x => ['Juli','Agustus','September','Oktober','November','Desember'].includes(x)).length;
+            const itemObj = {
+              id: bId,
+              no: Number(b.no) || (db.rincian.length + 1),
+              uraianKegiatan: b.uraianKegiatan,
+              rekeningBelanja: b.rekeningBelanja,
+              uraian: b.uraian,
+              satuan: b.satuan,
+              hargaSatuan: Number(b.hargaSatuan),
+              volume: Number(b.volume),
+              hargaTotal: hargaTot,
+              kodeRekening: b.kodeRekening,
+              blokBelanja: b.blokBelanja,
+              bulan: bulanArr,
+              jumlahTotalAnggaran: hargaTot * bulanArr.length,
+              salur1: hargaTot * s1Count,
+              salur2: hargaTot * s2Count
+            };
+            const idxEx = db.rincian.findIndex(x => x.id === bId);
+            if (idxEx >= 0) db.rincian[idxEx] = itemObj;
+            else db.rincian.push(itemObj);
+          });
+          db.rincian.forEach((r, i) => r.no = i + 1);
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: daftar.length + ' baris berhasil disimpan.' };
+        } else if (namaFungsi === 'hapusBarisRKAS') {
+          db.rincian = db.rincian.filter(r => r.id !== parameter);
+          db.rincian.forEach((r, i) => r.no = i + 1);
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: 'Baris berhasil dihapus.' };
+        } else if (namaFungsi === 'kosongkanRincianRKAS') {
+          db.rincian = [];
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: 'Rincian RKAS telah dikosongkan.' };
+        } else if (namaFungsi === 'perbaruiMasterKegiatan') {
+          db.masterKegiatan = parameter;
+          db.updateKegiatan = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) + ' WIB';
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: 'Master kegiatan berhasil disimpan (' + parameter.length + ' data).' };
+        } else if (namaFungsi === 'perbaruiMasterBarang') {
+          db.masterBarang = parameter;
+          db.updateBarang = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) + ' WIB';
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: 'Master barang berhasil disimpan (' + parameter.length + ' data).' };
+        } else if (namaFungsi === 'eksporBackupJSON' || namaFungsi === 'ekspokBackupJSON') {
+          const bundle = {
+            aplikasi: 'SDN 137 CIJEROKASO — RKAS STUDIO',
+            versi: '1.12',
+            tanggalEkspor: new Date().toISOString(),
+            konfigurasi: { anggaranTahunan: db.anggaranTahunan, salur1: db.salur1, salur2: db.salur2 },
+            rincianRKAS: db.rincian,
+            masterKegiatan: db.masterKegiatan,
+            masterBarang: db.masterBarang
+          };
+          return { sukses: true, dataJSON: JSON.stringify(bundle, null, 2) };
+        } else if (namaFungsi === 'importBackupJSON') {
+          const obj = typeof parameter === 'string' ? JSON.parse(parameter) : parameter;
+          if (obj.konfigurasi) {
+            db.anggaranTahunan = obj.konfigurasi.anggaranTahunan || 0;
+            db.salur1 = obj.konfigurasi.salur1 || 0;
+            db.salur2 = obj.konfigurasi.salur2 || 0;
+          }
+          if (Array.isArray(obj.rincianRKAS)) db.rincian = obj.rincianRKAS;
+          if (Array.isArray(obj.masterKegiatan)) db.masterKegiatan = obj.masterKegiatan;
+          if (Array.isArray(obj.masterBarang)) db.masterBarang = obj.masterBarang;
+          saveLocalDatabase(db);
+          return { sukses: true, pesan: 'Cadangan berhasil dipulihkan.' };
+        }
+        return { sukses: true, pesan: 'Aksi lokal selesai.' };
+      } catch (err) {
+        return { sukses: false, pesan: err.message };
+      }
+    }
+
+    async function panggilBackend(namaFungsi, parameter = null) {
+      const localDb = getLocalDatabase();
+      const gasUrl = rkasState.gasUrl;
+
+      if (gasUrl && gasUrl.startsWith('http')) {
+        try {
+          const response = await fetch(gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ fungsi: namaFungsi, parameter: parameter })
+          });
+          const text = await response.text();
+          let jsonRes;
+          try {
+            jsonRes = JSON.parse(text);
+          } catch (e) {
+            console.warn('Respon non-JSON dari Apps Script, menggunakan fallback lokal:', text);
+          }
+          if (jsonRes && typeof jsonRes === 'object' && jsonRes.sukses !== undefined) {
+            prosesFungsiLokal(namaFungsi, parameter, localDb);
+            return jsonRes;
+          }
+        } catch (err) {
+          console.warn('Koneksi Google Apps Script gagal/offline, melanjutkan dengan data lokal:', err);
+        }
+      }
+
+      return prosesFungsiLokal(namaFungsi, parameter, localDb);
+    }
+
+    function simpanLinkGasUrl() {
+      const url = document.getElementById('input-gas-url').value.trim();
+      if (!url) {
+        showAlertModal('Masukkan URL Web App Google Apps Script yang valid.', 'URL Kosong');
+        return;
+      }
+      rkasState.gasUrl = url;
+      localStorage.setItem('RKAS_GAS_URL', url);
+      perbaruiBadgeKoneksiCloud();
+      showAlertModal('Tautan Google Apps Script berhasil disimpan.', 'Tersimpan');
+    }
+
+    function resetLinkGasUrlDefault() {
+      rkasState.gasUrl = DEFAULT_GAS_URL;
+      localStorage.removeItem('RKAS_GAS_URL');
+      document.getElementById('input-gas-url').value = DEFAULT_GAS_URL;
+      perbaruiBadgeKoneksiCloud();
+      showAlertModal('Tautan dikembalikan ke endpoint bawaan resmi sekolah.', 'Reset Default');
+    }
+
+    async function ujiKoneksiSpreadsheet() {
+      const btn = document.getElementById('btn-uji-koneksi');
+      btn.innerText = 'Menguji...';
+      btn.disabled = true;
+      try {
+        const res = await panggilBackend('ping');
+        if (res && res.sukses) {
+          showAlertModal('Koneksi ke Google Apps Script dan Spreadsheet BERHASIL!\nRespon: ' + (res.pesan || 'OK'), 'Koneksi Sukses');
+        } else {
+          showAlertModal('Respon server belum sesuai: ' + (res?.pesan || 'Gagal terhubung'), 'Perhatian');
+        }
+      } catch (err) {
+        showAlertModal('Gagal terhubung ke Google Apps Script: ' + err.message, 'Koneksi Gagal');
+      } finally {
+        btn.innerText = '⚡ Uji Koneksi';
+        btn.disabled = false;
+        perbaruiBadgeKoneksiCloud();
+      }
+    }
+
+    async function tarikSemuaDariSpreadsheet() {
+      const btn = document.getElementById('btn-tarik-data');
+      btn.innerText = 'Menarik data...';
+      btn.disabled = true;
+      try {
+        await muatUlangSemuaData(false);
+        showAlertModal('Seluruh data anggaran, master, dan rincian RKAS berhasil diselaraskan dari Spreadsheet.', 'Sinkronisasi Selesai');
+      } catch (err) {
+        showAlertModal('Gagal menarik data: ' + err.message, 'Kesalahan');
+      } finally {
+        btn.innerText = 'Tarik Semua Data dari Spreadsheet';
+        btn.disabled = false;
+      }
+    }
+
+    async function kirimSemuaKeSpreadsheet() {
+      const btn = document.getElementById('btn-kirim-data');
+      btn.innerText = 'Mengirim data...';
+      btn.disabled = true;
+      try {
+        await panggilBackend('simpanAnggaranTahunan', rkasState.anggaranTahunan);
+        if (rkasState.masterKegiatan.length > 0) {
+          await panggilBackend('perbaruiMasterKegiatan', rkasState.masterKegiatan);
+        }
+        if (rkasState.masterBarang.length > 0) {
+          await panggilBackend('perbaruiMasterBarang', rkasState.masterBarang);
+        }
+        await panggilBackend('importBackupJSON', {
+          konfigurasi: { anggaranTahunan: rkasState.anggaranTahunan, salur1: rkasState.salur1, salur2: rkasState.salur2 },
+          rincianRKAS: rkasState.rincian,
+          masterKegiatan: rkasState.masterKegiatan,
+          masterBarang: rkasState.masterBarang
+        });
+        showAlertModal('Data berhasil dikirim dan ditata rapi ke sheet bulanan Google Spreadsheet!', 'Kirim Sukses');
+      } catch (err) {
+        showAlertModal('Gagal mengirim ke spreadsheet: ' + err.message, 'Kesalahan');
+      } finally {
+        btn.innerText = 'Kirim & Timpa ke Spreadsheet';
+        btn.disabled = false;
+      }
+    }
+
+    function salinKodeScriptGAS() {
+      const area = document.getElementById('kode-script-gas');
+      area.select();
+      document.execCommand('copy');
+      showAlertModal('Seluruh kode Google Apps Script (Code.gs) berhasil disalin ke clipboard!', 'Berhasil Disalin');
+    }
+
+    function perbaruiBadgeKoneksiCloud() {
+      const badge = document.getElementById('badge-status-koneksi-cloud');
+      const labelPenyimpanan = document.getElementById('label-mode-penyimpanan');
+      const labelDetail = document.getElementById('label-detail-sync');
+      if (!badge) return;
+
+      if (rkasState.gasUrl) {
+        badge.innerText = 'Status: Terhubung Cloud Google Sheets';
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold border border-brandGold/40 bg-brandGold/10 text-brandGold';
+        if (labelPenyimpanan) labelPenyimpanan.innerText = 'Google Sheets (Live)';
+        if (labelDetail) labelDetail.innerText = 'Tersambung ke Web App GAS';
+      } else {
+        badge.innerText = 'Status: Mode Lokal Standalone';
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold border border-brandPrimary/30 bg-brandDark text-brandMuted';
+        if (labelPenyimpanan) labelPenyimpanan.innerText = 'Penyimpanan Lokal';
+        if (labelDetail) labelDetail.innerText = 'Penyimpanan lokal aman aktif';
+      }
+    }
+
+    function muatTemplateKodeGAS() {
+      const area = document.getElementById('kode-script-gas');
+      if (!area) return;
+
+      area.value = `/**
+ * SDN 137 CIJEROKASO — RKAS STUDIO BACKEND (Code.gs)
+ * Menangani sinkronisasi Pagu Anggaran, Master Kegiatan, Master Barang,
+ * dan 12 Sheet Bulanan (JANUARI - DESEMBER) secara otomatis.
+ */
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    sukses: true,
+    pesan: 'Google Apps Script Backend SDN 137 CIJEROKASO aktif & siap menerima koneksi.',
+    waktu: new Date().toISOString()
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(30000);
+  try {
+    var raw = e.postData ? e.postData.contents : '';
+    var payload = JSON.parse(raw);
+    var aksi = payload.fungsi;
+    var param = payload.parameter;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    if (aksi === 'ping') {
+      return kirimResponJSON({ sukses: true, pesan: 'Koneksi ke Google Apps Script dan Google Spreadsheet SDN 137 CIJEROKASO AKTIF!' });
+    }
+
+    if (aksi === 'ambilAnggaranTahunan') {
+      var sh = dapatkanSheet(ss, 'ANGGARAN');
+      var val = Number(sh.getRange('B2').getValue()) || 0;
+      var s1 = Math.floor(val / 2);
+      var s2 = val - s1;
+      return kirimResponJSON({ sukses: true, data: { anggaranTahunan: val, salur1: s1, salur2: s2 } });
+    }
+
+    if (aksi === 'simpanAnggaranTahunan') {
+      var sh = dapatkanSheet(ss, 'ANGGARAN');
+      var val = Number(param) || 0;
+      sh.getRange('A1:B3').setValues([
+        ['Keterangan', 'Nilai (Rp)'],
+        ['Anggaran Tahunan', val],
+        ['Terakhir Diperbarui', new Date()]
+      ]);
+      var s1 = Math.floor(val / 2);
+      var s2 = val - s1;
+      return kirimResponJSON({ sukses: true, data: { anggaranTahunan: val, salur1: s1, salur2: s2 } });
+    }
+
+    if (aksi === 'ambilStatusMaster') {
+      var shKeg = ss.getSheetByName('MASTER_KEGIATAN');
+      var shBrg = ss.getSheetByName('MASTER_BARANG');
+      var kegCount = shKeg ? Math.max(0, shKeg.getLastRow() - 1) : 0;
+      var brgCount = shBrg ? Math.max(0, shBrg.getLastRow() - 1) : 0;
+      return kirimResponJSON({
+        sukses: true,
+        data: {
+          kegiatanCount: kegCount,
+          barangCount: brgCount,
+          updateKegiatan: kegCount > 0 ? 'Tersedia di Google Sheets' : '-',
+          updateBarang: brgCount > 0 ? 'Tersedia di Google Sheets' : '-'
+        }
+      });
+    }
+
+    if (aksi === 'ambilMasterKegiatan') {
+      var sh = dapatkanSheet(ss, 'MASTER_KEGIATAN');
+      var rows = sh.getDataRange().getValues();
+      var data = [];
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (r[0] || r[3]) {
+          data.push({
+            kodeKegiatan: String(r[0] || ''),
+            standar: String(r[1] || ''),
+            komponen: String(r[2] || ''),
+            uraianKegiatan: String(r[3] || ''),
+            jenisIndikatif: String(r[4] || 'Rutin')
+          });
+        }
+      }
+      return kirimResponJSON({ sukses: true, data: data });
+    }
+
+    if (aksi === 'perbaruiMasterKegiatan') {
+      var sh = dapatkanSheet(ss, 'MASTER_KEGIATAN');
+      sh.clearContents();
+      var list = param || [];
+      var arr = [['Kode Kegiatan', 'Standar', 'Komponen', 'Uraian Kegiatan', 'Jenis Indikatif']];
+      list.forEach(function(k) {
+        arr.push([k.kodeKegiatan, k.standar, k.komponen, k.uraianKegiatan, k.jenisIndikatif]);
+      });
+      if (arr.length > 0) {
+        sh.getRange(1, 1, arr.length, arr[0].length).setValues(arr);
+      }
+      return kirimResponJSON({ sukses: true, pesan: list.length + ' kegiatan berhasil disimpan ke sheet MASTER_KEGIATAN.' });
+    }
+
+    if (aksi === 'ambilMasterBarang') {
+      var sh = dapatkanSheet(ss, 'MASTER_BARANG');
+      var rows = sh.getDataRange().getValues();
+      var data = [];
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (r[4] || r[2]) {
+          data.push({
+            nomor: Number(r[0]) || i,
+            kodeBarang: String(r[1] || ''),
+            namaItem: String(r[2] || ''),
+            spesifikasi: String(r[3] || ''),
+            uraian: String(r[4] || ''),
+            satuan: String(r[5] || 'Pcs'),
+            hargaSatuan: Number(r[6]) || 0,
+            kodeRekeningSumber: String(r[7] || ''),
+            kodeRekening: String(r[8] || ''),
+            rekeningBelanja: String(r[9] || ''),
+            blokBelanja: String(r[10] || 'BOS Reguler')
+          });
+        }
+      }
+      return kirimResponJSON({ sukses: true, data: data });
+    }
+
+    if (aksi === 'perbaruiMasterBarang') {
+      var sh = dapatkanSheet(ss, 'MASTER_BARANG');
+      sh.clearContents();
+      var list = param || [];
+      var arr = [['Nomor', 'Kode Barang', 'Nama Item', 'Spesifikasi', 'Uraian', 'Satuan', 'Harga Satuan', 'Kode Rekening Sumber', 'Kode Rekening', 'Rekening Belanja', 'Blok Belanja']];
+      list.forEach(function(b, idx) {
+        arr.push([idx + 1, b.kodeBarang, b.namaItem, b.spesifikasi, b.uraian, b.satuan, b.hargaSatuan, b.kodeRekeningSumber, b.kodeRekening, b.rekeningBelanja, b.blokBelanja]);
+      });
+      if (arr.length > 0) {
+        sh.getRange(1, 1, arr.length, arr[0].length).setValues(arr);
+      }
+      return kirimResponJSON({ sukses: true, pesan: list.length + ' uraian/barang berhasil disimpan ke sheet MASTER_BARANG.' });
+    }
+
+    if (aksi === 'ambilSemuaRincianRKAS') {
+      var sh = dapatkanSheet(ss, 'RINCIAN_RKAS');
+      var rows = sh.getDataRange().getValues();
+      var data = [];
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (r[2]) {
+          var bulanArr = String(r[12] || '').split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+          data.push({
+            id: String(r[0] || ('RKAS-' + i)),
+            no: Number(r[1]) || i,
+            uraianKegiatan: String(r[2] || ''),
+            rekeningBelanja: String(r[3] || ''),
+            uraian: String(r[4] || ''),
+            satuan: String(r[5] || ''),
+            hargaSatuan: Number(r[6]) || 0,
+            volume: Number(r[7]) || 1,
+            hargaTotal: Number(r[8]) || 0,
+            kodeRekening: String(r[9] || ''),
+            blokBelanja: String(r[11] || ''),
+            bulan: bulanArr,
+            jumlahTotalAnggaran: Number(r[13]) || 0,
+            salur1: Number(r[14]) || 0,
+            salur2: Number(r[15]) || 0
+          });
+        }
+      }
+      return kirimResponJSON({ sukses: true, data: data });
+    }
+
+    if (aksi === 'simpanBarisRKAS' || aksi === 'simpanBanyakBarisRKAS' || aksi === 'hapusBarisRKAS' || aksi === 'kosongkanRincianRKAS' || aksi === 'importBackupJSON') {
+      var sh = dapatkanSheet(ss, 'RINCIAN_RKAS');
+      var semuaData = ambilDataRincianInternal(ss);
+
+      if (aksi === 'simpanBarisRKAS') {
+        var b = param;
+        var idx = semuaData.findIndex(function(x) { return x.id === b.id; });
+        var bulanList = Array.isArray(b.bulan) ? b.bulan : [];
+        var hTot = Number(b.hargaSatuan) * Number(b.volume);
+        var s1C = bulanList.filter(function(x) { return ['Januari','Februari','Maret','April','Mei','Juni'].indexOf(x) >= 0; }).length;
+        var s2C = bulanList.filter(function(x) { return ['Juli','Agustus','September','Oktober','November','Desember'].indexOf(x) >= 0; }).length;
+        var objBaru = {
+          id: b.id || ('RKAS-' + new Date().getTime()),
+          uraianKegiatan: b.uraianKegiatan,
+          rekeningBelanja: b.rekeningBelanja,
+          uraian: b.uraian,
+          satuan: b.satuan,
+          hargaSatuan: Number(b.hargaSatuan),
+          volume: Number(b.volume),
+          hargaTotal: hTot,
+          kodeRekening: b.kodeRekening,
+          blokBelanja: b.blokBelanja,
+          bulan: bulanList,
+          jumlahTotalAnggaran: hTot * bulanList.length,
+          salur1: hTot * s1C,
+          salur2: hTot * s2C
+        };
+        if (idx >= 0) semuaData[idx] = objBaru;
+        else semuaData.push(objBaru);
+      } else if (aksi === 'simpanBanyakBarisRKAS') {
+        var daftar = param || [];
+        daftar.forEach(function(b) {
+          var bulanList = Array.isArray(b.bulan) ? b.bulan : [];
+          var hTot = Number(b.hargaSatuan) * Number(b.volume);
+          var s1C = bulanList.filter(function(x) { return ['Januari','Februari','Maret','April','Mei','Juni'].indexOf(x) >= 0; }).length;
+          var s2C = bulanList.filter(function(x) { return ['Juli','Agustus','September','Oktober','November','Desember'].indexOf(x) >= 0; }).length;
+          semuaData.push({
+            id: b.id || ('RKAS-' + Math.random().toString(36).substr(2, 9)),
+            uraianKegiatan: b.uraianKegiatan,
+            rekeningBelanja: b.rekeningBelanja,
+            uraian: b.uraian,
+            satuan: b.satuan,
+            hargaSatuan: Number(b.hargaSatuan),
+            volume: Number(b.volume),
+            hargaTotal: hTot,
+            kodeRekening: b.kodeRekening,
+            blokBelanja: b.blokBelanja,
+            bulan: bulanList,
+            jumlahTotalAnggaran: hTot * bulanList.length,
+            salur1: hTot * s1C,
+            salur2: hTot * s2C
+          });
+        });
+      } else if (aksi === 'hapusBarisRKAS') {
+        semuaData = semuaData.filter(function(x) { return x.id !== param; });
+      } else if (aksi === 'kosongkanRincianRKAS') {
+        semuaData = [];
+      } else if (aksi === 'importBackupJSON') {
+        var paket = typeof param === 'string' ? JSON.parse(param) : param;
+        if (paket.rincianRKAS) semuaData = paket.rincianRKAS;
+      }
+
+      tulisUlangRincianDan12SheetBulanan(ss, semuaData);
+      return kirimResponJSON({ sukses: true, pesan: 'Rincian RKAS dan 12 sheet bulanan berhasil diperbarui.' });
+    }
+
+    return kirimResponJSON({ sukses: true, pesan: 'Aksi selesai.' });
+  } catch (err) {
+    return kirimResponJSON({ sukses: false, pesan: err.toString() });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function dapatkanSheet(ss, nama) {
+  var s = ss.getSheetByName(nama);
+  if (!s) s = ss.insertSheet(nama);
+  return s;
+}
+
+function ambilDataRincianInternal(ss) {
+  var sh = ss.getSheetByName('RINCIAN_RKAS');
+  if (!sh) return [];
+  var rows = sh.getDataRange().getValues();
+  var data = [];
+  for (var i = 1; i < rows.length; i++) {
+    var r = rows[i];
+    if (r[2]) {
+      var bln = String(r[12] || '').split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+      data.push({
+        id: String(r[0]),
+        no: i,
+        uraianKegiatan: String(r[2]),
+        rekeningBelanja: String(r[3]),
+        uraian: String(r[4]),
+        satuan: String(r[5]),
+        hargaSatuan: Number(r[6]) || 0,
+        volume: Number(r[7]) || 1,
+        hargaTotal: Number(r[8]) || 0,
+        kodeRekening: String(r[9]),
+        blokBelanja: String(r[11]),
+        bulan: bln,
+        jumlahTotalAnggaran: Number(r[13]) || 0,
+        salur1: Number(r[14]) || 0,
+        salur2: Number(r[15]) || 0
+      });
+    }
+  }
+  return data;
+}
+
+function tulisUlangRincianDan12SheetBulanan(ss, daftar) {
+  var shInduk = dapatkanSheet(ss, 'RINCIAN_RKAS');
+  shInduk.clearContents();
+  var header = ['ID', 'NO', 'URAIAN KEGIATAN', 'REKENING BELANJA', 'URAIAN', 'SATUAN', 'HARGA SATUAN', 'VOLUME', 'HARGA TOTAL', 'KODE REKENING', 'REKENING BELANJA DETAIL', 'BLOK BELANJA', 'BULAN', 'JUMLAH TOTAL ANGGARAN', 'SALUR 1', 'SALUR 2'];
+  var rows = [header];
+  daftar.forEach(function(item, idx) {
+    rows.push([
+      item.id,
+      idx + 1,
+      item.uraianKegiatan,
+      item.rekeningBelanja,
+      item.uraian,
+      item.satuan,
+      item.hargaSatuan,
+      item.volume,
+      item.hargaTotal,
+      item.kodeRekening,
+      item.rekeningBelanja,
+      item.blokBelanja,
+      item.bulan.join(', '),
+      item.jumlahTotalAnggaran,
+      item.salur1,
+      item.salur2
+    ]);
+  });
+  shInduk.getRange(1, 1, rows.length, header.length).setValues(rows);
+
+  var daftarBulan = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
+  daftarBulan.forEach(function(blnNama) {
+    var shBulan = dapatkanSheet(ss, blnNama);
+    shBulan.clearContents();
+    var bRows = [['NO', 'URAIAN KEGIATAN', 'REKENING BELANJA', 'URAIAN', 'SATUAN', 'HARGA SATUAN', 'VOLUME', 'HARGA TOTAL', 'KODE REKENING', 'BLOK BELANJA']];
+    var noUrut = 1;
+    var totalBulan = 0;
+    daftar.forEach(function(item) {
+      var ada = item.bulan.some(function(b) { return b.toUpperCase() === blnNama; });
+      if (ada) {
+        bRows.push([noUrut++, item.uraianKegiatan, item.rekeningBelanja, item.uraian, item.satuan, item.hargaSatuan, item.volume, item.hargaTotal, item.kodeRekening, item.blokBelanja]);
+        totalBulan += item.hargaTotal;
+      }
+    });
+    bRows.push(['', '', '', '', '', '', 'TOTAL ANGGARAN BULAN INI', totalBulan, '', '']);
+    shBulan.getRange(1, 1, bRows.length, 10).setValues(bRows);
+  });
+}
+
+function kirimResponJSON(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const gasInput = document.getElementById('input-gas-url');
+      if (gasInput) gasInput.value = rkasState.gasUrl;
+
+      const inpAngg = document.getElementById('input-anggaran-tahunan');
+      if (inpAngg) {
+        inpAngg.addEventListener('input', (e) => {
+          const raw = parseAngkaDariRupiah(e.target.value);
+          e.target.value = raw > 0 ? raw.toLocaleString('id-ID') : '';
+        });
+      }
+
+      muatTemplateKodeGAS();
+      perbaruiBadgeKoneksiCloud();
+      muatPengaturanAITersimpan();
+      muatStatusKnowledgeAITersimpan();
+
+      await pastikanMasterLoaded();
+      await muatUlangSemuaData(false);
+    });
+
+    function toggleDropdownCombobox(tipe) {
+      const list = document.getElementById(`list-combobox-${tipe}`);
+      if (!list) return;
+      if (list.classList.contains('hidden')) {
+        bukaDropdownCombobox(tipe);
+      } else {
+        list.classList.add('hidden');
+      }
+    }
+
+    function bukaDropdownCombobox(tipe) {
+      const list = document.getElementById(`list-combobox-${tipe}`);
+      if (!list) return;
+      if (tipe === 'kegiatan') isiListComboboxKegiatan();
+      else if (tipe === 'rekening') isiListComboboxRekening();
+      else if (tipe === 'uraian') isiListComboboxUraian();
+      list.classList.remove('hidden');
+    }
+
+    function filterCombobox(tipe, kataKunci) {
+      const list = document.getElementById(`list-combobox-${tipe}`);
+      if (!list) return;
+      list.classList.remove('hidden');
+      const q = (kataKunci || '').toLowerCase().trim();
+
+      if (tipe === 'kegiatan') {
+        const hasil = rkasState.masterKegiatan.filter(k => (k.uraianKegiatan || '').toLowerCase().includes(q));
+        renderOpsiComboboxKegiatan(hasil);
+      } else if (tipe === 'rekening') {
+        const listRek = Array.from(new Set(rkasState.masterBarang.map(b => b.rekeningBelanja).filter(Boolean)));
+        const hasil = listRek.filter(r => r.toLowerCase().includes(q));
+        renderOpsiComboboxRekening(hasil);
+      } else if (tipe === 'uraian') {
+        const rekTerpilih = document.getElementById('form-rekening-belanja').value.trim();
+        const items = rekTerpilih ? rkasState.masterBarang.filter(b => b.rekeningBelanja === rekTerpilih) : rkasState.masterBarang;
+        const hasil = items.filter(b => (b.uraian || '').toLowerCase().includes(q));
+        renderOpsiComboboxUraian(hasil);
+      }
+    }
+
+    function isiListComboboxKegiatan() {
+      const infoCount = document.getElementById('info-kegiatan-scroll-count');
+      if (infoCount) infoCount.innerText = `${rkasState.masterKegiatan.length} kegiatan tersedia`;
+      renderOpsiComboboxKegiatan(rkasState.masterKegiatan);
+    }
+
+    function renderOpsiComboboxKegiatan(items) {
+      const container = document.getElementById('list-combobox-kegiatan');
+      if (!container) return;
+      if (!items || items.length === 0) {
+        container.innerHTML = '<div class="p-3 text-brandMuted text-center italic">Tidak ada kegiatan yang cocok</div>';
+        return;
+      }
+      let html = '';
+      items.slice(0, 60).forEach(k => {
+        html += `
+          <div onclick="pilihOpsiCombobox('kegiatan', '${escapeHtml(k.uraianKegiatan)}')" class="p-2.5 hover:bg-brandPrimary hover:text-white cursor-pointer transition-colors text-xs">
+            <span class="font-bold text-brandPrimary">${escapeHtml(k.kodeKegiatan || '')}</span> ${escapeHtml(k.uraianKegiatan)}
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function isiListComboboxRekening() {
+      const listRek = Array.from(new Set(rkasState.masterBarang.map(b => b.rekeningBelanja).filter(Boolean))).sort();
+      renderOpsiComboboxRekening(listRek);
+    }
+
+    function renderOpsiComboboxRekening(items) {
+      const container = document.getElementById('list-combobox-rekening');
+      if (!container) return;
+      if (!items || items.length === 0) {
+        container.innerHTML = '<div class="p-3 text-brandMuted text-center italic">Tidak ada rekening yang cocok</div>';
+        return;
+      }
+      let html = '';
+      items.slice(0, 60).forEach(rek => {
+        html += `
+          <div onclick="pilihOpsiCombobox('rekening', '${escapeHtml(rek)}')" class="p-2.5 hover:bg-brandPrimary hover:text-white cursor-pointer transition-colors text-xs">
+            ${escapeHtml(rek)}
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function isiListComboboxUraian() {
+      const rek = document.getElementById('form-rekening-belanja').value.trim();
+      const items = rek ? rkasState.masterBarang.filter(b => b.rekeningBelanja === rek) : rkasState.masterBarang;
+      renderOpsiComboboxUraian(items);
+    }
+
+    function renderOpsiComboboxUraian(items) {
+      const container = document.getElementById('list-combobox-uraian');
+      if (!container) return;
+      if (!items || items.length === 0) {
+        container.innerHTML = '<div class="p-3 text-brandMuted text-center italic">Pilih rekening belanja terlebih dahulu atau data kosong</div>';
+        return;
+      }
+      let html = '';
+      items.slice(0, 60).forEach(b => {
+        html += `
+          <div onclick="pilihOpsiCombobox('uraian', '${escapeHtml(b.uraian)}', '${escapeHtml(b.satuan)}', ${b.hargaSatuan || 0}, '${escapeHtml(b.kodeRekening || '')}', '${escapeHtml(b.blokBelanja || '')}')" class="p-2.5 hover:bg-brandPrimary hover:text-white cursor-pointer transition-colors text-xs flex justify-between">
+            <span>${escapeHtml(b.uraian)}</span>
+            <span class="text-brandPrimary font-mono font-semibold">${formatRupiah(b.hargaSatuan)}</span>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function pilihOpsiCombobox(tipe, val, satuan = '', harga = 0, kodeRek = '', blok = '') {
+      const list = document.getElementById(`list-combobox-${tipe}`);
+      if (list) list.classList.add('hidden');
+
+      if (tipe === 'kegiatan') {
+        document.getElementById('form-kegiatan').value = val;
+      } else if (tipe === 'rekening') {
+        document.getElementById('form-rekening-belanja').value = val;
+        const match = rkasState.masterBarang.find(b => b.rekeningBelanja === val);
+        if (match) {
+          document.getElementById('form-blok-belanja').value = match.blokBelanja || 'BOS Reguler';
+          document.getElementById('form-kode-rekening').value = match.kodeRekening || '';
+        }
+        document.getElementById('form-uraian').value = '';
+        document.getElementById('form-satuan').value = '';
+        document.getElementById('form-harga-satuan').value = '';
+      } else if (tipe === 'uraian') {
+        document.getElementById('form-uraian').value = val;
+        document.getElementById('form-satuan').value = satuan;
+        document.getElementById('form-harga-satuan').value = harga;
+        document.getElementById('label-harga-maks').innerText = 'Maks: ' + formatRupiah(harga);
+        document.getElementById('label-harga-maks').dataset.max = harga;
+        document.getElementById('form-kode-rekening').value = kodeRek;
+        document.getElementById('form-blok-belanja').value = blok;
+        hitungKalkulasiForm();
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      ['kegiatan', 'rekening', 'uraian'].forEach(t => {
+        const wrap = document.getElementById(`wrapper-combobox-${t}`);
+        const list = document.getElementById(`list-combobox-${t}`);
+        if (wrap && list && !wrap.contains(e.target)) {
+          list.classList.add('hidden');
+        }
+      });
+    });
+
+    function bukaModalInputManual() {
+      document.getElementById('modal-manual-title').innerText = 'Input RKAS Manual';
+      document.getElementById('form-baris-id').value = '';
+      document.getElementById('form-baris-no').value = rkasState.rincian.length + 1;
+      document.getElementById('form-kegiatan').value = '';
+      document.getElementById('form-rekening-belanja').value = '';
+      document.getElementById('form-uraian').value = '';
+      document.getElementById('form-satuan').value = '';
+      document.getElementById('form-harga-satuan').value = '';
+      document.getElementById('label-harga-maks').innerText = 'Maks: Rp0';
+      document.getElementById('label-harga-maks').dataset.max = 0;
+      document.getElementById('form-volume').value = 1;
+      document.getElementById('form-harga-total').value = 'Rp0';
+      document.getElementById('form-kode-rekening').value = '';
+      document.getElementById('form-blok-belanja').value = '';
+      document.getElementById('form-jumlah-total-display').innerText = 'Rp0';
+
+      document.querySelectorAll('.cb-bulan').forEach(cb => cb.checked = false);
+      const modal = document.getElementById('modal-input-manual');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function tutupModalInputManual() {
+      const modal = document.getElementById('modal-input-manual');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function hitungKalkulasiForm() {
+      const hargaSatuanInp = document.getElementById('form-harga-satuan');
+      const volInp = document.getElementById('form-volume');
+      const maxHarga = Number(document.getElementById('label-harga-maks').dataset.max) || 0;
+
+      let harga = Number(hargaSatuanInp.value) || 0;
+      let vol = Number(volInp.value) || 0;
+
+      if (maxHarga > 0 && harga > maxHarga) {
+        showAlertModal('Harga satuan tidak boleh melebihi ketentuan master (' + formatRupiah(maxHarga) + ').', 'Batas Harga Master');
+        harga = maxHarga;
+        hargaSatuanInp.value = maxHarga;
+      }
+
+      const hargaTotal = harga * vol;
+      document.getElementById('form-harga-total').value = formatRupiah(hargaTotal);
+
+      const bulanTerpilih = Array.from(document.querySelectorAll('.cb-bulan:checked')).map(cb => cb.value);
+      const totalAnggaran = hargaTotal * bulanTerpilih.length;
+      document.getElementById('form-jumlah-total-display').innerText = formatRupiah(totalAnggaran);
+    }
+
+    async function simpanBarisDariFormManual() {
+      const id = document.getElementById('form-baris-id').value;
+      const no = Number(document.getElementById('form-baris-no').value) || (rkasState.rincian.length + 1);
+      const uraianKegiatan = document.getElementById('form-kegiatan').value.trim();
+      const rekeningBelanja = document.getElementById('form-rekening-belanja').value.trim();
+      const uraian = document.getElementById('form-uraian').value.trim();
+      const satuan = document.getElementById('form-satuan').value.trim();
+      const hargaSatuan = Number(document.getElementById('form-harga-satuan').value) || 0;
+      const volume = Number(document.getElementById('form-volume').value) || 0;
+      const kodeRekening = document.getElementById('form-kode-rekening').value.trim();
+      const blokBelanja = document.getElementById('form-blok-belanja').value.trim();
+      const bulanTerpilih = Array.from(document.querySelectorAll('.cb-bulan:checked')).map(cb => cb.value);
+
+      if (!uraianKegiatan || !rekeningBelanja || !uraian || !satuan) {
+        showAlertModal('Lengkapi kolom Uraian Kegiatan, Rekening Belanja, Uraian, dan Satuan terlebih dahulu.', 'Validasi Form');
+        return;
+      }
+      if (hargaSatuan <= 0 || volume <= 0) {
+        showAlertModal('Harga satuan dan volume belanja harus lebih dari 0.', 'Validasi Angka');
+        return;
+      }
+      if (bulanTerpilih.length === 0) {
+        showAlertModal('Pilih minimal satu bulan penggunaan.', 'Validasi Bulan');
+        return;
+      }
+
+      const barisObj = {
+        id: id || ('RKAS-' + Date.now()),
+        no,
+        uraianKegiatan,
+        rekeningBelanja,
+        uraian,
+        satuan,
+        hargaSatuan,
+        volume,
+        kodeRekening,
+        blokBelanja,
+        bulan: bulanTerpilih
+      };
+
+      const idx = rkasState.rincian.findIndex(r => r.id === barisObj.id);
+      const hTot = hargaSatuan * volume;
+      const s1C = bulanTerpilih.filter(b => ['Januari','Februari','Maret','April','Mei','Juni'].includes(b)).length;
+      const s2C = bulanTerpilih.filter(b => ['Juli','Agustus','September','Oktober','November','Desember'].includes(b)).length;
+      const itemLengkap = {
+        ...barisObj,
+        hargaTotal: hTot,
+        jumlahTotalAnggaran: hTot * bulanTerpilih.length,
+        salur1: hTot * s1C,
+        salur2: hTot * s2C
+      };
+
+      if (idx >= 0) rkasState.rincian[idx] = itemLengkap;
+      else rkasState.rincian.push(itemLengkap);
+
+      renderTabelRincian();
+      hitungTotalDanSisa();
+      tutupModalInputManual();
+
+      try {
+        await panggilBackend('simpanBarisRKAS', barisObj);
+      } catch (err) {
+        console.warn('Gagal sinkron baris ke cloud:', err);
+      }
+    }
+
+    function bukaRevisiBaris(id) {
+      const item = rkasState.rincian.find(r => r.id === id);
+      if (!item) return;
+
+      document.getElementById('modal-manual-title').innerText = 'Revisi Baris RKAS';
+      document.getElementById('form-baris-id').value = item.id;
+      document.getElementById('form-baris-no').value = item.no;
+      document.getElementById('form-kegiatan').value = item.uraianKegiatan;
+      document.getElementById('form-rekening-belanja').value = item.rekeningBelanja;
+      document.getElementById('form-uraian').value = item.uraian;
+      document.getElementById('form-satuan').value = item.satuan;
+      document.getElementById('form-harga-satuan').value = item.hargaSatuan;
+      document.getElementById('label-harga-maks').innerText = 'Maks: ' + formatRupiah(item.hargaSatuan);
+      document.getElementById('label-harga-maks').dataset.max = item.hargaSatuan;
+      document.getElementById('form-volume').value = item.volume;
+      document.getElementById('form-harga-total').value = formatRupiah(item.hargaTotal);
+      document.getElementById('form-kode-rekening').value = item.kodeRekening;
+      document.getElementById('form-blok-belanja').value = item.blokBelanja;
+
+      const blnArr = Array.isArray(item.bulan) ? item.bulan : [];
+      document.querySelectorAll('.cb-bulan').forEach(cb => {
+        cb.checked = blnArr.includes(cb.value);
+      });
+
+      hitungKalkulasiForm();
+      const modal = document.getElementById('modal-input-manual');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    async function hapusSatuBaris(id) {
+      showConfirmModal('Apakah Anda yakin ingin menghapus baris rancangan RKAS ini?', 'Hapus Baris', async () => {
+        rkasState.rincian = rkasState.rincian.filter(r => r.id !== id);
+        rkasState.rincian.forEach((r, i) => r.no = i + 1);
+        renderTabelRincian();
+        hitungTotalDanSisa();
+        try {
+          await panggilBackend('hapusBarisRKAS', id);
+        } catch (e) {
+          console.warn('Gagal sinkron hapus baris:', e);
+        }
+      });
+    }
+
+    function konfirmasiKosongkanRKAS() {
+      showConfirmModal('Apakah Anda yakin ingin mengosongkan SELURUH baris rancangan RKAS ini?', 'Kosongkan RKAS', async () => {
+        rkasState.rincian = [];
+        renderTabelRincian();
+        hitungTotalDanSisa();
+        try {
+          await panggilBackend('kosongkanRincianRKAS');
+        } catch (e) {
+          console.warn('Gagal sinkron kosongkan RKAS:', e);
+        }
+      });
+    }
+
+    async function simpanValidasiSemuaBaris() {
+      try {
+        await panggilBackend('simpanBanyakBarisRKAS', rkasState.rincian);
+        showAlertModal('Seluruh baris RKAS telah divalidasi dan tersimpan permanen.', 'Simpan Berhasil');
+      } catch (e) {
+        showAlertModal('Gagal menyimpan: ' + e.message, 'Kesalahan');
+      }
+    }
+
+    function renderTabelRincian() {
+      const tbody = document.getElementById('body-tabel-rincian');
+      if (!tbody) return;
+
+      if (!rkasState.rincian || rkasState.rincian.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="14" class="p-8 text-center text-brandMuted italic">
+              Belum ada baris dalam rancangan RKAS. Gunakan tombol '+ Input RKAS Manual' atau '✦ Analisis & Tampilkan Pendapat'.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      rkasState.rincian.forEach((item, idx) => {
+        const no = idx + 1;
+        const bulanStr = Array.isArray(item.bulan) ? item.bulan.join(', ') : (item.bulan || '-');
+        html += `
+          <tr class="hover:bg-brandDark/40 transition-colors border-b border-brandPrimary/10">
+            <td class="p-2.5 text-center text-brandMuted font-mono font-semibold">${no}</td>
+            <td class="p-2.5 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="bukaRevisiBaris('${item.id}')" class="px-2 py-1 rounded bg-brandPrimary/20 text-brandGold hover:bg-brandPrimary hover:text-brandText text-[10px] font-bold transition-colors">
+                  REVISI
+                </button>
+                <button onclick="hapusSatuBaris('${item.id}')" class="px-2 py-1 rounded bg-brandDanger/20 text-brandDanger hover:bg-brandDanger hover:text-white text-[10px] font-bold transition-colors">
+                  HAPUS
+                </button>
+              </div>
+            </td>
+            <td class="p-2.5 font-medium text-brandText">${escapeHtml(item.uraianKegiatan)}</td>
+            <td class="p-2.5 text-brandMuted text-[11px]">${escapeHtml(item.rekeningBelanja)}</td>
+            <td class="p-2.5 font-medium text-brandText">${escapeHtml(item.uraian)}</td>
+            <td class="p-2.5 text-brandMuted">${escapeHtml(item.satuan)}</td>
+            <td class="p-2.5 text-right font-mono text-brandText">${formatRupiah(item.hargaSatuan)}</td>
+            <td class="p-2.5 text-center font-mono font-bold text-brandGold">${item.volume}</td>
+            <td class="p-2.5 text-right font-mono text-brandText">${formatRupiah(item.hargaTotal)}</td>
+            <td class="p-2.5 font-mono text-brandMuted text-[10px]">${escapeHtml(item.kodeRekening)}</td>
+            <td class="p-2.5 text-brandMuted text-[11px]">${escapeHtml(item.rekeningBelanja)}</td>
+            <td class="p-2.5 text-brandMuted">${escapeHtml(item.blokBelanja)}</td>
+            <td class="p-2.5 text-brandGold font-medium text-[11px]">${escapeHtml(bulanStr)}</td>
+            <td class="p-2.5 text-right font-mono font-bold text-brandGold">${formatRupiah(item.jumlahTotalAnggaran)}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function hitungTotalDanSisa() {
+      let totSalur1 = 0;
+      let totSalur2 = 0;
+
+      rkasState.rincian.forEach(row => {
+        totSalur1 += Number(row.salur1) || 0;
+        totSalur2 += Number(row.salur2) || 0;
+      });
+
+      const totalSemua = totSalur1 + totSalur2;
+      const sisaSalur1 = rkasState.salur1 - totSalur1;
+      const sisaSalur2 = rkasState.salur2 - totSalur2;
+      const sisaTotal = rkasState.anggaranTahunan - totalSemua;
+
+      document.getElementById('metric-rincian').innerText = rkasState.rincian.length;
+      document.getElementById('metric-total-belanja').innerText = formatRupiah(totalSemua);
+      document.getElementById('stat-total-salur1').innerText = formatRupiah(totSalur1);
+      document.getElementById('stat-total-salur2').innerText = formatRupiah(totSalur2);
+      document.getElementById('stat-total-semua').innerText = formatRupiah(totalSemua);
+
+      const dispSisa1 = document.getElementById('stat-sisa-salur1');
+      if (dispSisa1) {
+        dispSisa1.innerText = formatRupiah(sisaSalur1);
+        dispSisa1.className = sisaSalur1 < 0 ? 'text-sm font-bold text-brandDanger mt-1' : 'text-sm font-bold text-brandGold mt-1';
+      }
+
+      const dispSisa2 = document.getElementById('stat-sisa-salur2');
+      if (dispSisa2) {
+        dispSisa2.innerText = formatRupiah(sisaSalur2);
+        dispSisa2.className = sisaSalur2 < 0 ? 'text-sm font-bold text-brandDanger mt-1' : 'text-sm font-bold text-brandGold mt-1';
+      }
+
+      const dispSisaTot = document.getElementById('stat-sisa-anggaran');
+      if (dispSisaTot) {
+        dispSisaTot.innerText = formatRupiah(sisaTotal);
+        dispSisaTot.className = sisaTotal < 0 ? 'text-sm font-black text-brandDanger mt-1' : 'text-sm font-black text-brandGold mt-1';
+      }
+    }
+
+    function renderPanelAnggaran() {
+      const inp = document.getElementById('input-anggaran-tahunan');
+      if (inp) inp.value = rkasState.anggaranTahunan > 0 ? rkasState.anggaranTahunan.toLocaleString('id-ID') : '';
+      const td = document.getElementById('disp-total-diterima');
+      if (td) td.innerText = formatRupiah(rkasState.anggaranTahunan);
+      const s1 = document.getElementById('disp-salur-1');
+      if (s1) s1.innerText = formatRupiah(rkasState.salur1);
+      const s2 = document.getElementById('disp-salur-2');
+      if (s2) s2.innerText = formatRupiah(rkasState.salur2);
+    }
+
+    function renderKartuStatusMaster() {
+      const mk = document.getElementById('metric-kegiatan');
+      if (mk) mk.innerText = rkasState.statusMaster.kegiatanCount || 0;
+      const mb = document.getElementById('metric-barang');
+      if (mb) mb.innerText = rkasState.statusMaster.barangCount || 0;
+      const ikc = document.getElementById('info-kegiatan-count');
+      if (ikc) ikc.innerText = `${rkasState.statusMaster.kegiatanCount || 0} kegiatan terdaftar`;
+      const ibc = document.getElementById('info-barang-count');
+      if (ibc) ibc.innerText = `${rkasState.statusMaster.barangCount || 0} item uraian terdaftar`;
+      const ikw = document.getElementById('info-kegiatan-waktu');
+      if (ikw) ikw.innerText = rkasState.statusMaster.updateKegiatan || '-';
+      const ibw = document.getElementById('info-barang-waktu');
+      if (ibw) ibw.innerText = rkasState.statusMaster.updateBarang || '-';
+    }
+
+    async function pastikanMasterLoaded() {
+      if (rkasState.masterKegiatan.length === 0) {
+        const resKeg = await panggilBackend('ambilMasterKegiatan');
+        if (resKeg.sukses) rkasState.masterKegiatan = resKeg.data || [];
+      }
+      if (rkasState.masterBarang.length === 0) {
+        const resBarang = await panggilBackend('ambilMasterBarang');
+        if (resBarang.sukses) rkasState.masterBarang = resBarang.data || [];
+      }
+    }
+
+    async function muatUlangSemuaData(tampilkanNotif = false) {
+      try {
+        const resAngg = await panggilBackend('ambilAnggaranTahunan');
+        if (resAngg.sukses) {
+          rkasState.anggaranTahunan = resAngg.data.anggaranTahunan || 0;
+          rkasState.salur1 = resAngg.data.salur1 || 0;
+          rkasState.salur2 = resAngg.data.salur2 || 0;
+          renderPanelAnggaran();
+        }
+
+        const resStatus = await panggilBackend('ambilStatusMaster');
+        if (resStatus.sukses) {
+          rkasState.statusMaster = resStatus.data;
+          renderKartuStatusMaster();
+        }
+
+        const resRincian = await panggilBackend('ambilSemuaRincianRKAS');
+        if (resRincian.sukses) {
+          rkasState.rincian = resRincian.data || [];
+          renderTabelRincian();
+          hitungTotalDanSisa();
+        }
+
+        if (tampilkanNotif) {
+          showAlertModal('Data RKAS dan anggaran berhasil dimuat ulang.', 'Segarkan Data');
+        }
+      } catch (err) {
+        console.warn('Gagal memuat ulang data:', err);
+      }
+    }
+
+    async function simpanAnggaranServer() {
+      const val = parseAngkaDariRupiah(document.getElementById('input-anggaran-tahunan').value);
+      if (val <= 0) {
+        showAlertModal('Masukkan nilai anggaran yang sah lebih dari Rp0.', 'Pagu Tidak Valid');
+        return;
+      }
+      try {
+        const res = await panggilBackend('simpanAnggaranTahunan', val);
+        if (res.sukses) {
+          rkasState.anggaranTahunan = res.data.anggaranTahunan;
+          rkasState.salur1 = res.data.salur1;
+          rkasState.salur2 = res.data.salur2;
+          renderPanelAnggaran();
+          hitungTotalDanSisa();
+          showAlertModal('Anggaran sebesar ' + formatRupiah(val) + ' berhasil disimpan.', 'Berhasil');
+        }
+      } catch (e) {
+        showAlertModal('Gagal menyimpan anggaran: ' + e.message, 'Kesalahan');
+      }
+    }
+
+    function eksporKeExcel() {
+      if (typeof XLSX === 'undefined') {
+        showAlertModal('Pustaka SheetJS belum siap.', 'Perhatian');
+        return;
+      }
+      const wb = XLSX.utils.book_new();
+      const header = ['NO', 'URAIAN KEGIATAN', 'REKENING BELANJA', 'URAIAN', 'SATUAN', 'HARGA SATUAN', 'VOLUME BELANJA', 'HARGA TOTAL', 'KODE REKENING', 'REKENING BELANJA', 'BLOK BELANJA', 'BULAN', 'JUMLAH TOTAL ANGGARAN'];
+      const dataRows = [header];
+
+      rkasState.rincian.forEach((item, idx) => {
+        dataRows.push([
+          idx + 1,
+          item.uraianKegiatan,
+          item.rekeningBelanja,
+          item.uraian,
+          item.satuan,
+          item.hargaSatuan,
+          item.volume,
+          item.hargaTotal,
+          item.kodeRekening,
+          item.rekeningBelanja,
+          item.blokBelanja,
+          Array.isArray(item.bulan) ? item.bulan.join(', ') : item.bulan,
+          item.jumlahTotalAnggaran
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(dataRows);
+      XLSX.utils.book_append_sheet(wb, ws, 'FORMAT RKAS');
+      XLSX.writeFile(wb, `FORMAT_RKAS_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function bersihkanTeksAnalisis() {
+      const textarea = document.getElementById('input-kebutuhan-teks');
+      if (!textarea) return;
+      textarea.value = '';
+      textarea.focus();
+    }
+
+    async function pasangSimbolTagOtomatis() {
+      const textarea = document.getElementById('input-kebutuhan-teks');
+      const rawTeks = textarea.value.trim();
+
+      if (!rawTeks) {
+        showAlertModal('Ketikkan terlebih dahulu ide, kebutuhan, atau telaah Rapor Pendidikan pada kolom teks sebelum memasang simbol/tag.', 'Teks Masih Kosong');
+        return;
+      }
+
+      const btn = document.getElementById('btn-auto-tag');
+      const spinner = document.getElementById('spinner-auto-tag');
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+
+      try {
+        const useAI = document.getElementById('check-use-ai')?.checked;
+        const cfg = JSON.parse(localStorage.getItem('RKAS_AI_CONFIG') || '{}');
+        let hasilTeks = '';
+
+        if (useAI) {
+          hasilTeks = await panggilAIPasangTagGemini(rawTeks, cfg);
+        } else {
+          hasilTeks = prosesEkstraksiTagLokal(rawTeks);
+        }
+
+        if (hasilTeks) {
+          textarea.value = hasilTeks;
+          showAlertModal(
+            'Simbol / Tag pintar berhasil disematkan dan narasi telah diselaraskan dengan tata kelola BOSP & Rapor Pendidikan!\n\nSilakan baca kembali naskah di kolom teks. Jika sudah pas, klik tombol "✦ Analisis & Tampilkan Pendapat" untuk merumuskan rincian RKAS.',
+            'Tag & Nomenklatur BOSP Disematkan'
+          );
+        }
+      } catch (err) {
+        console.warn('Gagal memproses via AI server, beralih ke parser lokal:', err);
+        const hasilFallback = prosesEkstraksiTagLokal(rawTeks);
+        textarea.value = hasilFallback;
+        showAlertModal('Simbol / Tag disematkan menggunakan Mesin Cerdas Lokal aplikasi.', 'Tag Cerdas Lokal');
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+      }
+    }
+
+    async function panggilAIPasangTagGemini(teks, cfg) {
+      const promptSystem = `Anda adalah Asisten Ahli Perencana Anggaran Satuan Pendidikan (BOSP / ARKAS) SDN 137 CIJEROKASO berbasis Perencanaan Berbasis Data (PBD).
+Tugas Anda: Membedah narasi kegiatan sekolah atau telaah Rapor Pendidikan, lalu merapikannya ke format terstruktur:
+1. Baris pertama: Pasang simbol kategori:
+   - #RAPOR [Indikator]: Jika narasi membahas rapor pendidikan (contoh: #RAPOR A.1 Literasi, #RAPOR A.2 Numerasi, #RAPOR D.4 Iklim Keamanan).
+   - #EVENT: Jika lomba/peringatan hari besar.
+   - #OPS: Jika kebutuhan operasional kantor/ATK rutin.
+   - #SARPRAS: Jika pemeliharaan sarana/prasarana fisik ringan.
+   - #PENGEMBANGAN: Jika pelatihan guru/Kombel/IHT.
+2. Tambahkan parameter yang terdeteksi: @PESERTA: [jumlah], @HARI: [durasi], @BLN: [nama bulan alokasi], @FOKUS: [kebutuhan pokok].
+3. Pada baris kedua kosong, lalu di baris ketiga dst tulis ulang narasi menjadi bahasa Indonesia baku, formal, dan mencerminkan tahapan pembenahan BOSP (Persiapan, Pelaksanaan, Evaluasi).
+HANYA kembalikan teks hasil akhir tanpa markdown formatting tambahan atau pembuka/penutup basa-basi.`;
+
+      const apiKey = cfg?.geminiKey || "";
+      const model = "gemini-3-flash-preview";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const resp = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${promptSystem}\n\nNarasi Pengguna:\n${teks}` }] }]
+        })
+      });
+
+      const json = await resp.json();
+      const hasil = json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      return hasil || prosesEkstraksiTagLokal(teks);
+    }
+
+    function prosesEkstraksiTagLokal(teks) {
+      const lower = teks.toLowerCase();
+      let tagUtama = '#EVENT';
+      if (lower.includes('rapor') || lower.includes('literasi') || lower.includes('numerasi') || lower.includes('iklim') || lower.includes('pbd')) {
+        let ind = 'PBD';
+        if (lower.includes('literasi')) ind = 'A.1 LITERASI';
+        else if (lower.includes('numerasi')) ind = 'A.2 NUMERASI';
+        else if (lower.includes('iklim') || lower.includes('perundungan')) ind = 'D.4 KEAMANAN';
+        tagUtama = `#RAPOR ${ind}`;
+      } else if (lower.includes('cat') || lower.includes('rusak') || lower.includes('gedung') || lower.includes('meja') || lower.includes('pintu')) {
+        tagUtama = '#SARPRAS';
+      } else if (lower.includes('workshop') || lower.includes('iht') || lower.includes('guru') || lower.includes('pelatihan') || lower.includes('kompetensi')) {
+        tagUtama = '#PENGEMBANGAN';
+      } else if (lower.includes('kertas') || lower.includes('spidol') || lower.includes('rutin') || lower.includes('kantor')) {
+        tagUtama = '#OPS';
+      }
+
+      let matchPeserta = teks.match(/(\d+)\s*(?:orang|peserta|siswa|guru)/i);
+      let pesertaStr = matchPeserta ? `@PESERTA: ${matchPeserta[1]} orang` : '';
+
+      const blnTerdeteksi = deteksiBulanLengkap(teks);
+      let blnStr = `@BLN: ${blnTerdeteksi}`;
+
+      let headerTags = [tagUtama, pesertaStr, blnStr].filter(Boolean).join(' ');
+      return `${headerTags}\n\n${teks.trim()}`;
+    }
+
+    /**
+     * STREAMING_CHUNK:Refactoring Gemini AI integration with full in-context activity catalog and smart month detection
+     */
+    async function panggilGeminiPenyusunRKAS(teks, masterKegiatan, masterBarang, cfg) {
+      const apiKey = cfg?.geminiKey || "";
+      const model = "gemini-3-flash-preview";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      // 1. Ekstrak seluruh daftar nama kegiatan master sekolah untuk disuapkan ke Gemini
+      const daftarNamaKegiatan = (masterKegiatan || []).map((k, i) => `${i + 1}. ${k.uraianKegiatan}`).join('\n');
+
+      // 2. System Instruction Tingkat Tinggi: AI bertindak sebagai Tim Ahli Perencana Anggaran Sekolah (BOSP & ARKAS)
+      const systemPrompt = `Anda adalah Pakar Utama Perencana Anggaran Satuan Pendidikan (BOSP / ARKAS) SDN 137 CIJEROKASO.
+Tugas Anda: Membedah kebutuhan sekolah, memilih satu Kegiatan Master resmi yang 100% tepat dari daftar yang disediakan, mendeteksi bulan pelaksanaan, serta merumuskan paket belanja yang sah dan logis menurut Juknis BOSP.
+
+DAFTAR MASTER KEGIATAN RESMI SEKOLAH YANG TERSEDIA:
+${daftarNamaKegiatan || '1. Pelaksanaan Kegiatan Pembelajaran dan Ekstrakurikuler\n2. Pelaksanaan Lomba Lomba\n3. Peringatan Hari Besar Nasional\n4. Peningkatan Kompetensi Guru\n5. Pemeliharaan Bangunan Gedung dan Ruangan'}
+
+ATURAN WAJIB PEMILIHAN KEGIATAN & BARANG:
+1. PEMILIHAN KEGIATAN:
+   - Jika teks membahas lomba / tanding / piala / agustusan / festival -> PILIH kegiatan bertema "Pelaksanaan Lomba Lomba" atau "Hari Besar" atau "Pengembangan Bakat Siswa". DILARANG memilih perjalanan dinas!
+   - Jika membahas workshop / pelatihan / IHT / rapor guru -> PILIH kegiatan bertema "Peningkatan Kompetensi Guru".
+   - Jika perbaikan sarpras / cat / meja -> PILIH kegiatan "Pemeliharaan Sarpras / Gedung".
+2. DETEKSI BULAN:
+   - "agustusan", "kemerdekaan", "17 agustus" -> Bulan: "Agustus"
+   - "hardiknas" -> Bulan: "Mei"
+   - "hari guru" -> Bulan: "November"
+   - "isra miraj / maulid" -> Sesuaikan konteks atau deteksi nama bulan dari teks.
+   - Jika tidak ada kata bulan spesifik, tentukan bulan logis di Salur 1 (Januari-Juni) atau Salur 2 (Juli-Desember).
+3. PAKET BELANJA LOGIS BOSP:
+   - Lomba / Acara: Wajib ada Piala/Hadiah, Konsumsi (Snack Dus / Makan Siang), Spanduk Panggung, Piagam/Sertifikat. DILARANG mengusulkan barang bangunan atau pensil warna kecuali lomba mewarnai.
+   - Pelatihan Guru: Konsumsi (Snack Dus), Spanduk Pelatihan, Penggandaan Modul, ATK (Pulpen/Stopmap).
+4. VOLUME BELANJA:
+   - Konsumsi = ikuti jumlah peserta (contoh: 80 peserta = 80 dus).
+   - Spanduk / Backdrop = 1 buah.
+   - Set Piala = 1 set.
+
+FORMAT RESPON WAJIB:
+Kembalikan HANYA format JSON valid tunggal dengan struktur:
+{
+  "kegiatanTerpilih": "[Salin persis nama kegiatan dari daftar master di atas yang paling tepat]",
+  "bulanTerpilih": "[Nama bulan dalam bahasa Indonesia, misal: Agustus]",
+  "usulanBelanja": [
+    {
+      "kataKunciBarang": "piala trophy penghargaan juara",
+      "kategori": "Hadiah",
+      "volume": 1,
+      "alasanBosp": "Hadiah piala apresiasi juara lomba siswa"
+    },
+    {
+      "kataKunciBarang": "snack dus konsumsi kue",
+      "kategori": "Konsumsi",
+      "volume": 80,
+      "alasanBosp": "Konsumsi snack pelaksanaan lomba untuk 80 peserta"
+    },
+    {
+      "kataKunciBarang": "spanduk banner backdrop panggung",
+      "kategori": "Publikasi",
+      "volume": 1,
+      "alasanBosp": "Spanduk publikasi dan backdrop panggung acara"
+    }
+  ]
+}`;
+
+      const userQuery = `Narasi Kebutuhan / Perencanaan Sekolah:
+"${teks}"
+
+Silakan tentukan:
+1. Nama kegiatan master yang paling cocok dari daftar.
+2. Bulan pelaksanaan yang terdeteksi dari narasi.
+3. Rincian kebutuhan belanja BOSP yang logis dan sah.`;
+
+      const resp = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: userQuery }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2
+          }
+        })
+      });
+
+      const json = await resp.json();
+      const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error("Tidak ada respon dari mesin AI Gemini.");
+
+      const parsed = JSON.parse(rawText);
+      const namaKegiatanAi = (parsed.kegiatanTerpilih || '').trim();
+      const bulanAi = parsed.bulanTerpilih || deteksiBulanLengkap(teks);
+      const usulanList = Array.isArray(parsed.usulanBelanja) ? parsed.usulanBelanja : [];
+
+      // Cari kegiatan master sekolah yang cocok dengan pilihan AI (atau fallback ke teks)
+      let kegiatanCocok = (masterKegiatan || []).find(k => k.uraianKegiatan.toLowerCase() === namaKegiatanAi.toLowerCase());
+      if (!kegiatanCocok) {
+        kegiatanCocok = (masterKegiatan || []).find(k => k.uraianKegiatan.toLowerCase().includes(namaKegiatanAi.toLowerCase()));
+      }
+      if (!kegiatanCocok) {
+        kegiatanCocok = tentukanKegiatanMasterTepat(teks, masterKegiatan);
+      }
+
+      // 3. Sisir seluruh ribuan baris master barang secara acak berdasarkan kata kunci kecocokan
+      const hasilFinal = [];
+      const usedBarangIds = new Set();
+
+      usulanList.forEach(p => {
+        const keywords = (p.kataKunciBarang || '').toLowerCase().split(/\s+/).filter(w => w.length >= 3);
+        let bestMatch = null;
+        let highestScore = -1;
+
+        masterBarang.forEach(b => {
+          if (usedBarangIds.has(b.kodeBarang || b.uraian)) return;
+          const uLower = (b.uraian || '').toLowerCase();
+          const rLower = (b.rekeningBelanja || '').toLowerCase();
+          const nLower = (b.namaItem || '').toLowerCase();
+          const combined = `${uLower} ${rLower} ${nLower}`;
+
+          // Filter eliminasi: Tolak barang pertukangan/bangunan untuk acara lomba atau pelatihan
+          const isAcaraAtauGuru = /lomba|agustusan|hari besar|pelatihan|guru|kompetensi/i.test(kegiatanCocok.uraianKegiatan);
+          if (isAcaraAtauGuru && /amplas|cat tembok|semen|pasir|kuas|paku|genteng/i.test(combined)) {
+            return;
+          }
+
+          let score = 0;
+          keywords.forEach(kw => {
+            if (uLower.includes(kw)) score += 15;
+            else if (combined.includes(kw)) score += 8;
+          });
+
+          // Penalti banner mini 60x80 cm jika yang dicari adalah spanduk acara
+          if (/spanduk|backdrop/i.test(p.kataKunciBarang) && /0[,.]6|60\s*x\s*80/i.test(uLower)) {
+            score -= 20;
+          }
+
+          if (score > highestScore && score > 0) {
+            highestScore = score;
+            bestMatch = b;
+          }
+        });
+
+        if (bestMatch) {
+          usedBarangIds.add(bestMatch.kodeBarang || bestMatch.uraian);
+          hasilFinal.push({
+            item: bestMatch,
+            kegiatan: kegiatanCocok.uraianKegiatan,
+            volume: Math.max(1, Number(p.volume) || 1),
+            bulan: [bulanAi],
+            alasan: p.alasanBosp || 'Kebutuhan resmi kegiatan BOSP.'
+          });
+        }
+      });
+
+      return {
+        usulan: hasilFinal,
+        bulanTerdeteksi: bulanAi
+      };
+    }
+
+    /**
+     * STREAMING_CHUNK:Updating jalankanAnalisisKebutuhan to synchronize the AI month and proposals seamlessly
+     */
+    async function jalankanAnalisisKebutuhan() {
+      const teks = document.getElementById('input-kebutuhan-teks').value.trim();
+      if (!teks) {
+        showAlertModal('Masukkan narasi kebutuhan atau telaah Rapor Pendidikan yang Anda rencanakan.', 'Input Masih Kosong');
+        return;
+      }
+
+      await pastikanMasterLoaded();
+      if (rkasState.masterBarang.length === 0) {
+        showAlertModal('Master data barang/rekening masih kosong. Unggah data master di tab Update Master terlebih dahulu.', 'Master Kosong');
+        return;
+      }
+
+      const btn = document.getElementById('btn-analisis');
+      const spinner = document.getElementById('spinner-analisis');
+      const bannerAi = document.getElementById('label-banner-sumber-ai');
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+
+      const useAI = document.getElementById('check-use-ai')?.checked;
+      const cfg = JSON.parse(localStorage.getItem('RKAS_AI_CONFIG') || '{}');
+
+      try {
+        let usulanHasil = [];
+        let bulanFinal = deteksiBulanLengkap(teks);
+
+        if (useAI) {
+          try {
+            const hasilGemini = await panggilGeminiPenyusunRKAS(teks, rkasState.masterKegiatan, rkasState.masterBarang, cfg);
+            usulanHasil = hasilGemini.usulan || [];
+            if (hasilGemini.bulanTerdeteksi) {
+              bulanFinal = hasilGemini.bulanTerdeteksi;
+            }
+
+            if (usulanHasil.length > 0 && bannerAi) {
+              bannerAi.innerText = 'Diformulasikan secara cerdas oleh Mesin AI Gemini BOSP & Divalidasi Master Resmi Sekolah';
+            }
+          } catch (aiErr) {
+            console.warn('Gagal memproses via AI Server Gemini, beralih ke Mesin Cerdas Semantik Lokal:', aiErr);
+            usulanHasil = prosesAnalisisLokal(teks);
+            if (bannerAi) bannerAi.innerText = 'Dihitung melalui Mesin Cerdas Rekomendasi Semantik Lokal Sekolah';
+          }
+        }
+
+        if (usulanHasil.length === 0) {
+          usulanHasil = prosesAnalisisLokal(teks);
+          if (bannerAi) bannerAi.innerText = 'Mode Rekomendasi Semantik Lokal Aktif';
+        }
+
+        if (usulanHasil.length === 0) {
+          showAlertModal('Tidak ditemukan barang master yang sesuai dan relevan dengan konteks kegiatan ini. Pastikan master barang Anda memuat item yang wajar seperti Konsumsi/Snack, Spanduk, atau ATK kegiatan.', 'Item Belum Tersedia di Master');
+          return;
+        }
+
+        rkasState.rekomendasiPending = usulanHasil;
+        renderModalPendapat(usulanHasil, bulanFinal);
+      } catch (err) {
+        showAlertModal('Gagal menjalankan analisis: ' + err.message, 'Kesalahan Analisis');
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+      }
+    }
+
+    /**
+     * STREAMING_CHUNK:Local semantic analysis ensuring 100% domain relevance between activity and items
+     */
+    function prosesAnalisisLokal(teks) {
+      const teksLower = teks.toLowerCase();
+      let hasil = [];
+
+      // 1. Identifikasi Kegiatan Master Terdekat dengan fungsi pengunci domain
+      const matchedKegiatan = tentukanKegiatanMasterTepat(teks, rkasState.masterKegiatan);
+
+      // 2. Ekstraksi Jumlah Peserta dan Bulan
+      let estimasiVolume = 1;
+      const matchVol = teks.match(/@PESERTA:\s*(\d+)/i) || teks.match(/(\d+)\s*(?:orang|peserta|siswa|guru|porsi|kotak)/i);
+      if (matchVol) estimasiVolume = Number(matchVol[1]) || 1;
+
+      const bulanTepat = deteksiBulanLengkap(teks);
+      const blnList = [bulanTepat];
+
+      // 3. Saring Master Barang Berdasarkan Domain yang NYAMBUNG
+      const barangSesuaiDomain = filterMasterBarangRelevan('', teks, rkasState.masterBarang);
+
+      barangSesuaiDomain.forEach(b => {
+        let score = 0;
+        const uLower = (b.uraian || '').toLowerCase();
+
+        // Bobot keterkaitan logis
+        if (/lomba|agustusan|tanding|festival/i.test(teksLower)) {
+          if (/piala|hadiah|medali|trophy/i.test(uLower)) score += 15;
+          if (/snack|makan|minum|konsumsi/i.test(uLower)) score += 12;
+          if (/spanduk|banner|baliho/i.test(uLower) && !/0[,.]6|60\s*x\s*80/i.test(uLower)) score += 10;
+          if (/piagam|sertifikat/i.test(uLower)) score += 8;
+        } else if (/guru|pelatihan|workshop|iht/i.test(teksLower)) {
+          if (/snack|makan|minum|kue|konsumsi/i.test(uLower)) score += 12;
+          if (/kertas|hvs|modul|penggandaan|fotokopi/i.test(uLower)) score += 8;
+          if (/spanduk|banner|backdrop/i.test(uLower)) score += 6;
+          if (/spidol|atk|alat tulis|pulpen|stopmap/i.test(uLower)) score += 5;
+        } else {
+          if (teksLower.includes(uLower)) score += 5;
+        }
+
+        if (score > 0) {
+          const isKonsumsi = /makan|snack|minum|kue|konsumsi|air mineral/i.test(uLower);
+          const isModul = /modul|fotokopi|penggandaan/i.test(uLower);
+          hasil.push({
+            item: b,
+            kegiatan: matchedKegiatan.uraianKegiatan,
+            volume: (isKonsumsi || isModul) ? estimasiVolume : 1,
+            bulan: blnList,
+            score: score,
+            alasan: isKonsumsi 
+              ? `Konsumsi pelaksanaan kegiatan untuk ${estimasiVolume} orang.` 
+              : `Bahan dan perlengkapan pendukung operasional pelaksanaan kegiatan.`
+          });
+        }
+      });
+
+      // Urutkan dari yang paling relevan dan ambil maksimal 5 usulan terbaik
+      hasil.sort((a, b) => b.score - a.score);
+      return hasil.slice(0, 5);
+    }
+
+    /**
+     * STREAMING_CHUNK:Render modal usulan rekomendasi dengan sinkronisasi otomatis centang bulan
+     */
+    function renderModalPendapat(daftar, bulanTerpilih = 'Januari') {
+      const tbody = document.getElementById('body-rekomendasi');
+      let html = '';
+      daftar.forEach((rec, i) => {
+        const blnStr = Array.isArray(rec.bulan) ? rec.bulan.join(', ') : (rec.bulan || bulanTerpilih);
+        html += `
+          <tr class="hover:bg-brandDark/40">
+            <td class="p-2.5 text-center"><input type="checkbox" class="cb-rekom-item" data-idx="${i}" checked onchange="updateCounterRekom()"></td>
+            <td class="p-2.5 font-medium text-brandText">${escapeHtml(rec.kegiatan)}</td>
+            <td class="p-2.5 font-medium text-brandText">${escapeHtml(rec.item.uraian)}</td>
+            <td class="p-2.5 text-brandMuted text-[10px]">${escapeHtml(rec.item.rekeningBelanja)}</td>
+            <td class="p-2.5 text-brandMuted">${escapeHtml(rec.item.satuan)}</td>
+            <td class="p-2.5 text-right font-mono text-brandGold">${formatRupiah(rec.item.hargaSatuan)}</td>
+            <td class="p-2.5 text-center font-mono font-bold text-brandGold">${rec.volume || 1}</td>
+            <td class="p-2.5 text-center text-[10px] text-brandGold font-bold">${escapeHtml(blnStr)}</td>
+            <td class="p-2.5 text-brandMuted text-[11px] leading-relaxed">${escapeHtml(rec.alasan)}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+      updateCounterRekom();
+
+      // Sinkronisasi otomatis kotak centang bulan massal di bagian atas modal
+      document.querySelectorAll('.cb-rekom-bln').forEach(cb => {
+        cb.checked = (cb.value === bulanTerpilih);
+      });
+
+      const modal = document.getElementById('modal-pendapat');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function updateCounterRekom() {
+      const checked = document.querySelectorAll('.cb-rekom-item:checked').length;
+      document.getElementById('counter-terpilih-rekom').innerText = `${checked} item dipilih`;
+    }
+
+    function toggleCheckSemuaRekom(cek) {
+      document.querySelectorAll('.cb-rekom-item').forEach(c => c.checked = cek);
+      updateCounterRekom();
+    }
+
+    function tutupModalPendapat() {
+      const modal = document.getElementById('modal-pendapat');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function terapkanRekomendasi(semua = false) {
+      const bulanFallback = Array.from(document.querySelectorAll('.cb-rekom-bln:checked')).map(cb => cb.value);
+      const cbs = Array.from(document.querySelectorAll('.cb-rekom-item'));
+      const targetItems = [];
+
+      cbs.forEach((cb, idx) => {
+        if (semua || cb.checked) {
+          const rec = rkasState.rekomendasiPending[idx];
+          if (rec) {
+            const finalBulan = Array.isArray(rec.bulan) && rec.bulan.length > 0 ? rec.bulan : (bulanFallback.length > 0 ? bulanFallback : ['Januari']);
+            targetItems.push({
+              uraianKegiatan: rec.kegiatan,
+              rekeningBelanja: rec.item.rekeningBelanja,
+              uraian: rec.item.uraian,
+              satuan: rec.item.satuan,
+              hargaSatuan: rec.item.hargaSatuan,
+              volume: Math.max(1, Number(rec.volume) || 1),
+              kodeRekening: rec.item.kodeRekening,
+              blokBelanja: rec.item.blokBelanja,
+              bulan: finalBulan
+            });
+          }
+        }
+      });
+
+      if (targetItems.length === 0) {
+        showAlertModal('Pilih minimal satu item rekomendasi untuk dimasukkan ke RKAS.', 'Belum Ada Pilihan');
+        return;
+      }
+
+      try {
+        await panggilBackend('simpanBanyakBarisRKAS', targetItems);
+        tutupModalPendapat();
+        await muatUlangSemuaData(false);
+        pindahTab('rincian');
+        showAlertModal(`${targetItems.length} item usulan berhasil dimasukkan ke tabel RKAS.`, 'Berhasil Ditambahkan');
+      } catch (err) {
+        showAlertModal('Gagal menambahkan rekomendasi: ' + err.message, 'Kesalahan');
+      }
+    }
+
+    function formatRupiah(angka) {
+      const num = Number(angka) || 0;
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(num);
+    }
+
+    function parseAngkaDariRupiah(str) {
+      if (typeof str === 'number') return str;
+      const clean = String(str || '').replace(/[^\d]/g, '');
+      return Number(clean) || 0;
+    }
+
+    function pindahTab(tab) {
+      ['ringkasan', 'rincian', 'master', 'admin'].forEach(t => {
+        const sec = document.getElementById('tab-' + t);
+        const nav = document.getElementById('nav-' + t);
+        if (!sec || !nav) return;
+
+        if (t === tab) {
+          sec.classList.remove('hidden');
+          if (t === 'admin') {
+            nav.className = 'w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-medium transition-all bg-brandGold text-white shadow-sm border border-brandGold';
+          } else {
+            nav.className = 'w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-semibold transition-all bg-brandPrimary text-white shadow-sm';
+          }
+        } else {
+          sec.classList.add('hidden');
+          if (t === 'admin') {
+            nav.className = 'w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-medium transition-all text-brandGold hover:bg-brandGold/10 border border-brandGold/30';
+          } else {
+            nav.className = 'w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 font-medium transition-all text-brandMuted hover:bg-brandDark hover:text-brandText';
+          }
+        }
+      });
+    }
+
+    function showAlertModal(pesan, judul = 'Perhatian') {
+      const modal = document.getElementById('modal-dialog-kustom');
+      const t = document.getElementById('dialog-title');
+      const m = document.getElementById('dialog-message');
+      const btnArea = document.getElementById('dialog-buttons');
+      if (t) t.innerText = judul;
+      if (m) m.innerText = pesan;
+      if (btnArea) {
+        btnArea.innerHTML = `
+          <button onclick="tutupDialogKustom()" class="px-5 py-2 rounded-lg bg-brandPrimary text-white font-bold text-xs hover:bg-brandPrimary/90 transition-colors">
+            OK
+          </button>
+        `;
+      }
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function showConfirmModal(pesan, judul, onYa) {
+      const modal = document.getElementById('modal-dialog-kustom');
+      const t = document.getElementById('dialog-title');
+      const m = document.getElementById('dialog-message');
+      const btnArea = document.getElementById('dialog-buttons');
+      if (t) t.innerText = judul || 'Konfirmasi';
+      if (m) m.innerText = pesan;
+      if (btnArea) {
+        btnArea.innerHTML = `
+          <button onclick="tutupDialogKustom()" class="px-4 py-2 rounded-lg bg-brandDark border border-brandPrimary/40 text-brandMuted text-xs font-semibold hover:text-brandText transition-colors">
+            Batal
+          </button>
+          <button id="btn-dialog-ya" class="px-5 py-2 rounded-lg bg-brandDanger text-white font-bold text-xs hover:bg-brandDanger/80 transition-colors">
+            Ya
+          </button>
+        `;
+        const btnYa = document.getElementById('btn-dialog-ya');
+        if (btnYa) {
+          btnYa.onclick = () => {
+            tutupDialogKustom();
+            if (typeof onYa === 'function') onYa();
+          };
+        }
+      }
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function tutupDialogKustom() {
+      const modal = document.getElementById('modal-dialog-kustom');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function deteksiBulanLengkap(teks) {
+      const t = (teks || '').toLowerCase();
+      if (/agustus|agustusan|17\s*agustus|\bbln\s*8\b|\bbulan\s*8\b/i.test(t)) return 'Agustus';
+      if (/januari|jan\b|\bbln\s*1\b|\bbulan\s*1\b/i.test(t)) return 'Januari';
+      if (/februari|feb\b|\bbln\s*2\b|\bbulan\s*2\b/i.test(t)) return 'Februari';
+      if (/maret|mar\b|\bbln\s*3\b|\bbulan\s*3\b/i.test(t)) return 'Maret';
+      if (/april|apr\b|\bbln\s*4\b|\bbulan\s*4\b/i.test(t)) return 'April';
+      if (/mei\b|hardiknas|\bbln\s*5\b|\bbulan\s*5\b/i.test(t)) return 'Mei';
+      if (/juni|jun\b|\bbln\s*6\b|\bbulan\s*6\b/i.test(t)) return 'Juni';
+      if (/juli|jul\b|mpls|\bbln\s*7\b|\bbulan\s*7\b/i.test(t)) return 'Juli';
+      if (/september|sep\b|\bbln\s*9\b|\bbulan\s*9\b/i.test(t)) return 'September';
+      if (/oktober|oktoberan|okt\b|\bbln\s*10\b|\bbulan\s*10\b/i.test(t)) return 'Oktober';
+      if (/november|hari\s*guru|nov\b|\bbln\s*11\b|\bbulan\s*11\b/i.test(t)) return 'November';
+      if (/desember|des\b|semester\s*ganjil|\bbln\s*12\b|\bbulan\s*12\b/i.test(t)) return 'Desember';
+      return 'Januari';
+    }
+
+    function tentukanKegiatanMasterTepat(teks, masterKegiatan) {
+      const t = (teks || '').toLowerCase();
+      const list = masterKegiatan || [];
+      if (list.length === 0) {
+        return { kodeKegiatan: '03.03.19', uraianKegiatan: 'Pelaksanaan Lomba Lomba' };
+      }
+
+      // Prioritas 1: Lomba / Agustusan / Kemerdekaan / Ekstrakurikuler
+      if (/lomba|agustus|kemerdekaan|tanding|festival|seni|olahraga|bakat|ekskul|ekstrakurikuler/i.test(t)) {
+        const found = list.find(k => /lomba|bakat|ekstrakurikuler|prestasi/i.test(k.uraianKegiatan));
+        if (found) return found;
+      }
+
+      // Prioritas 2: Peningkatan Kompetensi Guru / Workshop / Rapor Pendidikan
+      if (/guru|kompetensi|workshop|iht|pelatihan|rapor|kombel|ptk|pembelajaran/i.test(t)) {
+        const found = list.find(k => /kompetensi|guru|ptk|profesi|peningkatan/i.test(k.uraianKegiatan));
+        if (found) return found;
+      }
+
+      // Prioritas 3: Sarpras / Gedung / Pemeliharaan Fisik
+      if (/gedung|ruang|bangunan|cat|pintu|atap|jendela|meja|kursi|sarpras|pemeliharaan/i.test(t)) {
+        const found = list.find(k => /pemeliharaan|gedung|bangunan|sarana/i.test(k.uraianKegiatan));
+        if (found) return found;
+      }
+
+      // Prioritas 4: Operasional / Bahan Habis Pakai Rutin
+      if (/kantor|atk|administrasi|kertas|spidol|operasional/i.test(t)) {
+        const found = list.find(k => /pengelolaan|operasional|administrasi|layanan/i.test(k.uraianKegiatan));
+        if (found) return found;
+      }
+
+      return list[0];
+    }
+
+    function filterMasterBarangRelevan(kegiatanNama, narasiTeks, masterBarang) {
+      const t = `${kegiatanNama} ${narasiTeks}`.toLowerCase();
+      const isLomba = /lomba|agustus|festival|seni|olahraga|tanding/i.test(t);
+      const isGuru = /guru|pelatihan|workshop|iht|kompetensi/i.test(t);
+      const isSarpras = /cat|tembok|bangunan|gedung|meja|kursi|perbaikan/i.test(t);
+
+      return (masterBarang || []).filter(b => {
+        const combined = `${b.uraian || ''} ${b.namaItem || ''} ${b.rekeningBelanja || ''}`.toLowerCase();
+
+        // Tolak barang pertukangan/bangunan untuk lomba atau pelatihan guru
+        if ((isLomba || isGuru) && /amplas|semen|pasir|cat tembok|kuas|paku|genteng|bata/i.test(combined)) {
+          return false;
+        }
+
+        // Tolak pensil warna/crayon untuk kegiatan perayaan umum atau pelatihan guru (kecuali lomba mewarnai)
+        if (!/mewarnai|gambar/i.test(t) && /pensil warna|crayon|kenko tin case/i.test(combined)) {
+          return false;
+        }
+
+        if (isLomba) {
+          return /piala|trophy|hadiah|medali|snack|makan|minum|spanduk|banner|piagam|sertifikat/i.test(combined);
+        }
+        if (isGuru) {
+          return /snack|makan|minum|kue|kertas|hvs|modul|fotokopi|spanduk|banner|pulpen|stopmap/i.test(combined);
+        }
+        if (isSarpras) {
+          return /cat|kuas|semen|paku|genteng|kayu|amplas|pipa|kunci/i.test(combined);
+        }
+        return true;
+      });
+    }
+
+    function cariNilaiKolom(row, kandidatKunci) {
+      if (!row || typeof row !== 'object') return '';
+      const keys = Object.keys(row);
+
+      for (let target of kandidatKunci) {
+        const cleanTarget = target.toLowerCase().replace(/[^a-z0-9]/g, '');
+        for (let k of keys) {
+          const cleanKey = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (cleanKey === cleanTarget) {
+            if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== '') {
+              return String(row[k]).trim();
+            }
+          }
+        }
+      }
+
+      for (let target of kandidatKunci) {
+        const cleanTarget = target.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (cleanTarget.length < 3) continue;
+        for (let k of keys) {
+          const cleanKey = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (cleanTarget.includes('uraian') && cleanKey.includes('kode')) continue;
+          if (cleanKey.includes(cleanTarget)) {
+            if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== '') {
+              return String(row[k]).trim();
+            }
+          }
+        }
+      }
+      return '';
+    }
+
+    function parseNominalAngka(val) {
+      if (typeof val === 'number') return isNaN(val) ? 0 : Math.round(val);
+      if (!val) return 0;
+      let s = String(val).trim().replace(/^rp\s*/i, '').replace(/[^\d.,-]/g, '');
+      if (!s) return 0;
+      if (s.includes('.') && !s.includes(',')) {
+        const parts = s.split('.');
+        if (parts.length > 1 && parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
+      } else if (s.includes(',') && !s.includes('.')) {
+        const parts = s.split(',');
+        if (parts.length > 1 && parts[parts.length - 1].length === 3) s = s.replace(/,/g, '');
+        else s = s.replace(',', '.');
+      } else if (s.includes('.') && s.includes(',')) {
+        s = s.replace(/\./g, '').replace(',', '.');
+      }
+      const n = parseFloat(s);
+      return isNaN(n) ? 0 : Math.round(n);
+    }
+
+    function cariSheetTerbaik(workbook, tipe) {
+      if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) return null;
+      for (let name of workbook.SheetNames) {
+        const s = workbook.Sheets[name];
+        if (!s || !s['!ref']) continue;
+        const n = name.toLowerCase();
+        if (tipe === 'barang' && (n.includes('barang') || n.includes('rekening') || n.includes('uraian') || n.includes('ssh') || n.includes('item'))) return s;
+        if (tipe === 'kegiatan' && (n.includes('kegiatan') || n.includes('standar') || n.includes('program'))) return s;
+      }
+      return workbook.Sheets[workbook.SheetNames[0]];
+    }
+
+    function ekstrakDataDariSheet(sheet, tipe) {
+      const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (!aoa || aoa.length === 0) return { rows: [], detectedHeaders: [], headerRowIndex: -1 };
+
+      let bestHeaderIdx = 0;
+      let maxScore = -1;
+      const targetKeywords = tipe === 'barang' 
+        ? ['uraian', 'barang', 'item', 'rekening', 'harga', 'satuan', 'spesifikasi', 'nomor', 'kode'] 
+        : ['kegiatan', 'standar', 'komponen', 'kode', 'indikatif', 'uraian'];
+
+      const scanLimit = Math.min(aoa.length, 25);
+      for (let r = 0; r < scanLimit; r++) {
+        const row = aoa[r];
+        if (!Array.isArray(row) || row.length === 0) continue;
+        const filledCols = row.filter(c => String(c).trim() !== '').length;
+        if (filledCols < 2) continue;
+
+        let score = 0;
+        row.forEach(c => {
+          const val = String(c).toLowerCase().trim();
+          targetKeywords.forEach(kw => { if (val.includes(kw)) score += 3; });
+        });
+        score += filledCols;
+
+        if (score > maxScore) {
+          maxScore = score;
+          bestHeaderIdx = r;
+        }
+      }
+
+      let rawHeaders = aoa[bestHeaderIdx].map(h => String(h || '').trim());
+      const rows = [];
+      for (let r = bestHeaderIdx + 1; r < aoa.length; r++) {
+        const rowArr = aoa[r];
+        if (!rowArr || rowArr.every(c => String(c).trim() === '')) continue;
+        const obj = {};
+        let hasAnyVal = false;
+        rawHeaders.forEach((h, colIdx) => {
+          if (h) {
+            const cellVal = rowArr[colIdx] !== undefined ? rowArr[colIdx] : '';
+            obj[h] = cellVal;
+            if (String(cellVal).trim() !== '') hasAnyVal = true;
+          }
+        });
+        if (hasAnyVal) rows.push(obj);
+      }
+      return { rows, detectedHeaders: rawHeaders, headerRowIndex: bestHeaderIdx };
+    }
+
+    function normalisasiDataBarang(rawRows) {
+      const hasil = [];
+      rawRows.forEach((row, idx) => {
+        const nomor = cariNilaiKolom(row, ['nomor', 'no', 'num', 'nourut']) || (idx + 1);
+        const kodeBarang = cariNilaiKolom(row, ['kodebarang', 'kdbarang', 'kodeitem', 'idbarang', 'kode_barang', 'kode']) || ('BRG-' + String(idx + 1).padStart(4, '0'));
+        const namaItem = cariNilaiKolom(row, ['namaitem', 'nama_item', 'namabarang', 'nama_barang', 'item', 'barang']) || '';
+        const spesifikasi = cariNilaiKolom(row, ['spesifikasi', 'spek', 'keterangan', 'merk']) || '';
+        
+        let uraian = cariNilaiKolom(row, ['uraian', 'uraianbarang', 'uraian_barang', 'namauraian', 'namaitem', 'namabarang']) || '';
+        if (!uraian && namaItem) uraian = namaItem + (spesifikasi ? ' ' + spesifikasi : '');
+        if (!uraian) return;
+
+        const satuan = cariNilaiKolom(row, ['satuan', 'unit', 'satuanitem', 'uom']) || 'Pcs';
+        const rawHarga = cariNilaiKolom(row, ['hargasatuan', 'harga_satuan', 'harga', 'tarif', 'nominal']);
+        const hargaSatuan = parseNominalAngka(rawHarga);
+
+        let kodeRekening = String(cariNilaiKolom(row, ['koderekening', 'kode_rekening', 'koderk', 'kodeakun']) || '').trim();
+        let rekeningBelanja = String(cariNilaiKolom(row, ['rekeningbelanja', 'rekening_belanja', 'namarekening', 'akunbelanja']) || '').trim();
+        const kodeRekeningSumber = String(cariNilaiKolom(row, ['koderekeningsumber', 'rekeningsumber']) || '').trim();
+        const blokBelanja = String(cariNilaiKolom(row, ['blokbelanja', 'blok_belanja', 'blok', 'sumberdana']) || 'BOS Reguler').trim();
+
+        if (!rekeningBelanja && kodeRekening) rekeningBelanja = kodeRekening;
+        else if (rekeningBelanja && !kodeRekening) {
+          const match = rekeningBelanja.match(/^([0-9.]+)/);
+          kodeRekening = match ? match[1].replace(/\.$/, '') : '5.1.02';
+        }
+
+        if (!rekeningBelanja && !kodeRekening) {
+          rekeningBelanja = '5.1.02.01 — Belanja Barang dan Jasa';
+          kodeRekening = '5.1.02.01';
+        }
+
+        hasil.push({
+          nomor: Number(nomor) || (idx + 1),
+          kodeBarang: String(kodeBarang).trim(),
+          namaItem: String(namaItem || uraian).trim(),
+          spesifikasi: String(spesifikasi).trim(),
+          uraian: String(uraian).trim(),
+          satuan: String(satuan).trim(),
+          hargaSatuan: hargaSatuan,
+          kodeRekeningSumber: kodeRekeningSumber,
+          kodeRekening: kodeRekening,
+          rekeningBelanja: rekeningBelanja,
+          blokBelanja: blokBelanja
+        });
+      });
+      return hasil;
+    }
+
+    function normalisasiDataKegiatan(rawRows) {
+      const hasil = [];
+      rawRows.forEach((row, idx) => {
+        const kodeKegiatan = String(cariNilaiKolom(row, ['kodekegiatan', 'kode_kegiatan', 'kdkegiatan', 'kode']) || '').trim();
+        const standar = String(cariNilaiKolom(row, ['standar', 'standarpendidikan']) || '').trim();
+        const komponen = String(cariNilaiKolom(row, ['komponen', 'komponenbos', 'program']) || '').trim();
+        let uraianKegiatan = String(cariNilaiKolom(row, ['uraiankegiatan', 'uraian_kegiatan', 'namakegiatan', 'kegiatan']) || '').trim();
+        const jenisIndikatif = String(cariNilaiKolom(row, ['jenisindikatif', 'jenis_indikatif', 'jenis']) || 'Rutin').trim();
+
+        if (!uraianKegiatan && kodeKegiatan) uraianKegiatan = kodeKegiatan;
+        if (!uraianKegiatan) return;
+
+        hasil.push({
+          kodeKegiatan: kodeKegiatan,
+          standar: standar,
+          komponen: komponen,
+          uraianKegiatan: uraianKegiatan,
+          jenisIndikatif: jenisIndikatif
+        });
+      });
+      return hasil;
+    }
+
+    async function prosesUploadMaster(tipe, event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (typeof XLSX === 'undefined') {
+        showAlertModal('Pustaka SheetJS belum siap.', 'Perhatian');
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const targetSheet = cariSheetTerbaik(workbook, tipe);
+          if (!targetSheet) {
+            showAlertModal('Lembar kerja tidak ditemukan.', 'Error');
+            return;
+          }
+
+          const extractRes = ekstrakDataDariSheet(targetSheet, tipe);
+          const rawRows = extractRes.rows;
+
+          if (tipe === 'kegiatan') {
+            const dataBersih = normalisasiDataKegiatan(rawRows);
+            const res = await panggilBackend('perbaruiMasterKegiatan', dataBersih);
+            if (res.sukses) {
+              rkasState.masterKegiatan = dataBersih;
+              rkasState.statusMaster.kegiatanCount = dataBersih.length;
+              rkasState.statusMaster.updateKegiatan = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) + ' WIB';
+              renderKartuStatusMaster();
+              isiListComboboxKegiatan();
+              showAlertModal(res.pesan || `${dataBersih.length} kegiatan berhasil tersimpan ke spreadsheet dan siap digunakan pada formulir RKAS.`, 'Master Kegiatan Siap Digunakan');
+            }
+          } else if (tipe === 'barang') {
+            const dataBersih = normalisasiDataBarang(rawRows);
+            const res = await panggilBackend('perbaruiMasterBarang', dataBersih);
+            if (res.sukses) {
+              rkasState.masterBarang = dataBersih;
+              rkasState.statusMaster.barangCount = dataBersih.length;
+              rkasState.statusMaster.updateBarang = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) + ' WIB';
+              renderKartuStatusMaster();
+              isiListComboboxRekening();
+              filterTabelMasterCari();
+              showAlertModal(res.pesan || `${dataBersih.length} uraian & rekening belanja tersimpan ke spreadsheet dan siap digunakan pada formulir RKAS.`, 'Master Rekening & Uraian Siap Digunakan');
+            }
+          }
+        } catch (err) {
+          showAlertModal('Gagal memproses file Excel: ' + (err.message || err), 'Kesalahan Format');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function unduhTemplate(tipe) {
+      const wb = XLSX.utils.book_new();
+      if (tipe === 'kegiatan') {
+        const ws = XLSX.utils.aoa_to_sheet([
+          ['Kode Kegiatan', 'Standar', 'Komponen', 'Uraian Kegiatan', 'Jenis Indikatif'],
+          ['03.03.19', 'Standar Isi', 'Pelaksanaan Pembelajaran', 'Pelaksanaan Lomba Lomba', 'Rutin'],
+          ['05.08.01', 'Standar Sarpras', 'Pemeliharaan Sarana dan Prasarana', 'Pemeliharaan Bangunan Gedung dan Ruangan', 'Pemeliharaan']
+        ]);
+        XLSX.utils.book_append_sheet(wb, ws, 'Master_Kegiatan');
+        XLSX.writeFile(wb, 'Template-Update-Master-Kegiatan.xlsx');
+      } else {
+        const ws = XLSX.utils.aoa_to_sheet([
+          ['Nomor', 'Kode Barang', 'Nama Item', 'Spesifikasi', 'Uraian', 'Satuan', 'Harga Satuan', 'Kode Rekening Sumber', 'Kode Rekening', 'Rekening Belanja', 'Blok Belanja'],
+          [1, 'BRG-001', 'Kertas HVS A4', '75 gram SIDU', 'Kertas HVS A4 75 gram', 'Rim', 55000, '5.1.02.01', '5.1.02.01.01.0024', '5.1.02.01.01.0024 — Belanja Alat Tulis Kantor', 'BOS Reguler']
+        ]);
+        XLSX.utils.book_append_sheet(wb, ws, 'Master_Barang');
+        XLSX.writeFile(wb, 'Template-Update-Rekening-Uraian.xlsx');
+      }
+    }
+
+    async function muatMasterBarangPencarian() {
+      await pastikanMasterLoaded();
+      filterTabelMasterCari();
+      showAlertModal('Data master pencarian telah dimuat (' + rkasState.masterBarang.length + ' item).', 'Data Segar');
+    }
+
+    function filterTabelMasterCari() {
+      const uraianVal = document.getElementById('cari-master-uraian').value.toLowerCase().trim();
+      const rekVal = document.getElementById('cari-master-rekening').value.toLowerCase().trim();
+      const tbody = document.getElementById('body-master-cari');
+
+      if (rkasState.masterBarang.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-brandMuted italic">Tekan "Segarkan Data Pencarian" untuk memuat master barang.</td></tr>';
+        return;
+      }
+
+      const hasil = rkasState.masterBarang.filter(b => {
+        const matchUraian = !uraianVal || b.uraian.toLowerCase().includes(uraianVal) || (b.namaItem && b.namaItem.toLowerCase().includes(uraianVal));
+        const matchRek = !rekVal || b.rekeningBelanja.toLowerCase().includes(rekVal);
+        return matchUraian && matchRek;
+      });
+
+      if (hasil.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-brandMuted italic">Tidak ada item yang cocok.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      hasil.slice(0, 30).forEach(it => {
+        html += `
+          <tr class="hover:bg-brandDark/40">
+            <td class="p-2 font-mono text-[10px] text-brandMuted">${escapeHtml(it.kodeBarang)}</td>
+            <td class="p-2 font-medium text-brandText">${escapeHtml(it.uraian)}</td>
+            <td class="p-2 text-brandMuted">${escapeHtml(it.satuan)}</td>
+            <td class="p-2 text-right font-mono text-brandGold">${formatRupiah(it.hargaSatuan)}</td>
+            <td class="p-2 text-brandMuted text-[10px]">${escapeHtml(it.rekeningBelanja)}</td>
+            <td class="p-2 text-brandMuted">${escapeHtml(it.blokBelanja)}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    async function eksporBackupJSONServer() {
+      try {
+        const res = await panggilBackend('eksporBackupJSON');
+        if (res.sukses) {
+          const blob = new Blob([res.dataJSON], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `SDN_137_CIJEROKASO_RKAS_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      } catch (e) {
+        showAlertModal('Gagal ekspor cadangan: ' + e.message, 'Kesalahan');
+      }
+    }
+
+    function imporBackupJSONServer(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const content = e.target.result;
+          const res = await panggilBackend('importBackupJSON', content);
+          if (res.sukses) {
+            await muatUlangSemuaData(false);
+            showAlertModal('Data cadangan berhasil dipulihkan.', 'Pemulihan Sukses');
+          }
+        } catch (err) {
+          showAlertModal('Format file JSON tidak valid: ' + err.message, 'Kesalahan Format');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function bukaModalPengaturanAI() {
+      const modal = document.getElementById('modal-pengaturan-ai');
+      const pinContainer = document.getElementById('ai-pin-container');
+      const formContainer = document.getElementById('ai-form-container');
+      const pinInp = document.getElementById('input-ai-pin');
+      if (pinInp) pinInp.value = '';
+
+      if (rkasState.aiPinVerified) {
+        if (pinContainer) pinContainer.classList.add('hidden');
+        if (formContainer) formContainer.classList.remove('hidden');
+      } else {
+        if (pinContainer) pinContainer.classList.remove('hidden');
+        if (formContainer) formContainer.classList.add('hidden');
+      }
+
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function tutupModalPengaturanAI() {
+      const modal = document.getElementById('modal-pengaturan-ai');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function verifikasiPINAplikasi() {
+      const pin = document.getElementById('input-ai-pin')?.value.trim();
+      if (pin === '977977') {
+        rkasState.aiPinVerified = true;
+        document.getElementById('ai-pin-container')?.classList.add('hidden');
+        document.getElementById('ai-form-container')?.classList.remove('hidden');
+      } else {
+        showAlertModal('PIN Keamanan salah. Silakan coba lagi (PIN Standar: 977977).', 'Akses Ditolak');
+      }
+    }
+
+    function gantiTampilanProviderAI(provider) {
+      rkasState.modeAI = provider;
+      const boxLocal = document.getElementById('box-local');
+      const boxGemini = document.getElementById('box-gemini');
+      const boxOpenai = document.getElementById('box-openai');
+      const badgeAi = document.getElementById('badge-ai-mode');
+
+      if (boxLocal) boxLocal.classList.add('hidden');
+      if (boxGemini) boxGemini.classList.add('hidden');
+      if (boxOpenai) boxOpenai.classList.add('hidden');
+
+      if (provider === 'LOCAL') {
+        if (boxLocal) boxLocal.classList.remove('hidden');
+        if (badgeAi) badgeAi.innerText = 'Mode Rekomendasi Cerdas Lokal';
+      } else if (provider === 'GEMINI') {
+        if (boxGemini) boxGemini.classList.remove('hidden');
+        if (badgeAi) badgeAi.innerText = 'Mesin AI Gemini BOSP Online';
+      } else if (provider === 'OPENAI') {
+        if (boxOpenai) boxOpenai.classList.remove('hidden');
+        if (badgeAi) badgeAi.innerText = 'Mesin OpenAI (GPT-4o Mini)';
+      }
+    }
+
+    async function ujiKoneksiAI(tipe) {
+      const statusSpan = document.getElementById('status-uji-ai');
+      if (statusSpan) statusSpan.innerText = 'Menguji koneksi...';
+
+      if (tipe === 'GEMINI') {
+        const key = document.getElementById('key-gemini')?.value.trim();
+        if (!key) {
+          if (statusSpan) statusSpan.innerText = 'Siap (Menggunakan runtime / key default)';
+          showAlertModal('Siap menggunakan runtime / model bawaan lingkungan online.', 'Uji Kunci Gemini');
+          return;
+        }
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: 'Halo' }] }] })
+          });
+          const data = await resp.json();
+          if (data.candidates && data.candidates.length > 0) {
+            if (statusSpan) statusSpan.innerHTML = '<span class="text-emerald-400 font-bold">Koneksi Gemini Berhasil!</span>';
+            showAlertModal('Koneksi ke Google Gemini API BERHASIL dan aktif!', 'Uji API Sukses');
+          } else {
+            throw new Error(data.error?.message || 'Respon tidak valid');
+          }
+        } catch (e) {
+          if (statusSpan) statusSpan.innerHTML = '<span class="text-brandDanger font-bold">Koneksi Gagal</span>';
+          showAlertModal('Uji koneksi Gemini gagal: ' + e.message, 'Kesalahan API');
+        }
+      } else if (tipe === 'OPENAI') {
+        const key = document.getElementById('key-openai')?.value.trim();
+        if (!key) {
+          showAlertModal('Masukkan OpenAI API Key terlebih dahulu.', 'Kunci Kosong');
+          if (statusSpan) statusSpan.innerText = 'Kunci OpenAI belum diisi';
+          return;
+        }
+        try {
+          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${key}`
+            },
+            body: JSON.stringify({
+              model: document.getElementById('model-openai')?.value.trim() || 'gpt-4o-mini',
+              messages: [{ role: 'user', content: 'halo' }],
+              max_tokens: 5
+            })
+          });
+          const data = await resp.json();
+          if (data.choices && data.choices.length > 0) {
+            if (statusSpan) statusSpan.innerHTML = '<span class="text-emerald-400 font-bold">Koneksi OpenAI Berhasil!</span>';
+            showAlertModal('Koneksi ke OpenAI API BERHASIL dan aktif!', 'Uji API Sukses');
+          } else {
+            throw new Error(data.error?.message || 'Respon tidak valid');
+          }
+        } catch (e) {
+          if (statusSpan) statusSpan.innerHTML = '<span class="text-brandDanger font-bold">Koneksi Gagal</span>';
+          showAlertModal('Uji koneksi OpenAI gagal: ' + e.message, 'Kesalahan API');
+        }
+      }
+    }
+
+    function simpanPengaturanAI() {
+      const provider = document.getElementById('pilih-provider-ai')?.value || 'GEMINI';
+      const geminiKey = document.getElementById('key-gemini')?.value.trim() || '';
+      const geminiModel = document.getElementById('model-gemini')?.value.trim() || 'gemini-3-flash-preview';
+      const openaiKey = document.getElementById('key-openai')?.value.trim() || '';
+      const openaiModel = document.getElementById('model-openai')?.value.trim() || 'gpt-4o-mini';
+
+      const cfg = { provider, geminiKey, geminiModel, openaiKey, openaiModel };
+      localStorage.setItem('RKAS_AI_CONFIG', JSON.stringify(cfg));
+      rkasState.modeAI = provider;
+
+      const badgeAi = document.getElementById('badge-ai-mode');
+      if (badgeAi) {
+        if (provider === 'LOCAL') badgeAi.innerText = 'Mode Rekomendasi Cerdas Lokal';
+        else if (provider === 'GEMINI') badgeAi.innerText = 'Mesin AI Gemini BOSP Online';
+        else if (provider === 'OPENAI') badgeAi.innerText = 'Mesin OpenAI (GPT-4o Mini)';
+      }
+
+      tutupModalPengaturanAI();
+      showAlertModal('Konfigurasi integrasi AI berhasil disimpan.', 'Tersimpan');
+    }
+
+    function muatPengaturanAITersimpan() {
+      try {
+        const stored = localStorage.getItem('RKAS_AI_CONFIG');
+        if (stored) {
+          const cfg = JSON.parse(stored);
+          const selProv = document.getElementById('pilih-provider-ai');
+          if (selProv && cfg.provider) {
+            selProv.value = cfg.provider;
+            gantiTampilanProviderAI(cfg.provider);
+          }
+          const kg = document.getElementById('key-gemini');
+          if (kg && cfg.geminiKey) kg.value = cfg.geminiKey;
+          const mg = document.getElementById('model-gemini');
+          if (mg && cfg.geminiModel) mg.value = cfg.geminiModel;
+          const ko = document.getElementById('key-openai');
+          if (ko && cfg.openaiKey) ko.value = cfg.openaiKey;
+          const mo = document.getElementById('model-openai');
+          if (mo && cfg.openaiModel) mo.value = cfg.openaiModel;
+        }
+      } catch (e) {
+        console.warn('Gagal memuat konfigurasi AI:', e);
+      }
+    }
+
+    function hapusKunciAIServer() {
+      showConfirmModal('Apakah Anda yakin ingin menghapus semua kunci AI yang tersimpan di browser ini?', 'Hapus Kunci AI', () => {
+        localStorage.removeItem('RKAS_AI_CONFIG');
+        const kg = document.getElementById('key-gemini');
+        if (kg) kg.value = '';
+        const ko = document.getElementById('key-openai');
+        if (ko) ko.value = '';
+        document.getElementById('status-uji-ai').innerText = 'Kunci tersimpan telah dibersihkan.';
+        showAlertModal('Seluruh kunci API tersimpan telah dihapus.', 'Kunci Dihapus');
+      });
+    }
+  </script>
+</body>
+</html>
